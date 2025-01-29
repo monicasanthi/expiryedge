@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+            background-size: cover;
+            z-index: -1;
+            filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .nav {
+            display: flex;
+            align-items: center;
+        }
+        .header .nav .back-arrow {
+            margin-right: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .header .icons {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 20px;
+        }
+        .header .icons .icon {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            min-width: 150px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            display: none;
+        }
+        .dropdown a {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown a:hover {
+            background-color: #ddd;
+        }
+
+        /* FAQ Styling */
+        .faq-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .faq-item {
+            margin-bottom: 15px;
+        }
+        .faq-item h3 {
+            cursor: pointer;
+            background-color: #c4bfbf;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+        }
+        .faq-item p {
+            display: none;
+            padding: 10px;
+            font-family: 'Times New Roman', Times, serif;
+            margin-top: 5px;
+            background-color: #e0dddd;
+            border-radius: 5px;
+        }
+        .faq-item.active p {
+            display: block;
+        }
+
+        /* For mobile devices */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: row;
+                align-items: center;
+                padding: 15px;
+            }
+            .faq-item h3 {
+                font-size: 1rem;
+            }
+            .faq-item p {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* For larger devices (e.g., tablets and up) */
+        @media (min-width: 769px) {
+            .faq-item h3 {
+                font-size: 1.2rem;
+            }
+            .faq-item p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="header">
+        <div class="nav">
+            <i class="fas fa-arrow-left back-arrow"></i>
+        </div>
+        <div class="icons">
+            <i class="fas fa-shopping-cart icon"></i>
+            <div class="dropdown-container">
+                <i class="fas fa-user icon" id="userIcon"></i>
+                <div class="dropdown" id="dropdownMenu">
+                    <a href="/">Home</a>
+                    <a href="/settings/">Settings</a>
+                    <a href="/user_signin/">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="faq-container">
+        <div class="faq-item">
+            <h3>1.What is the Smart Stock Management System?</h3>
+            <p>The Smart Stock Management System helps shops and small businesses manage their inventory efficiently by tracking expiry dates. It automatically captures product details through barcode/QR code scanning, updates stock quantities, and sends notifications for expiring products.</p>
+        </div>
+        <div class="faq-item">
+            <h3>2.How do I add products to the system?</h3>
+            <p>You can add products by scanning their barcode or QR code. The system will automatically capture essential details such as the product name, expiry date, and quantity.</p>
+        </div>
+        <div class="faq-item">
+            <h3>3.How does the system handle duplicate product entries?</h3>
+            <p>If the same product is added again, the system intelligently updates the quantity and prevents duplicate entries to ensure accurate stock management.</p>
+        </div>
+        <div class="faq-item">
+            <h3>4.How will I be notified about expiring products?</h3>
+            <p>The system will send timely notifications two days before a product’s expiry date, allowing you to take necessary action, such as restocking or removing the product.</p>
+        </div>
+        <div class="faq-item">
+            <h3>5.What happens to expired products in the system?</h3>
+            <p>The system automatically clears expired product data from the inventory, helping maintain accurate stock levels and preventing outdated information.</p>
+        </div>
+        <div class="faq-item">
+            <h3>6.Can I sort my inventory by expiry date?</h3>
+            <p>Yes, the system automatically organizes products by expiry date, making it easier for you to track and manage items that are about to expire.</p>
+        </div>
+        <div class="faq-item">
+            <h3>7.What is included in the dashboard?</h3>
+            <p>The dashboard provides an overview of your total stock, products nearing expiry, and quick access to actions like restocking or removing products.</p>
+        </div>
+        <div class="faq-item">
+            <h3>8.Is the platform secure for shop registration?</h3>
+            <p>Yes, the platform offers secure shop registration with login credentials to ensure that only authorized personnel can access and manage the inventory data.</p>
+        </div>
+        <div class="faq-item">
+            <h3>9.Can I use the system for multiple branches or shops?</h3>
+            <p>Yes, the system is designed to support multiple locations, allowing you to manage stock across different shops or branches.</p>
+        </div>
+        <div class="faq-item">
+            <h3>10.How can I contact support if I have any issues?</h3>
+            <p>You can reach our support team via the 'Contact Us' page for assistance with any issues or questions related to the system.</p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle FAQ answers
+        const faqItems = document.querySelectorAll('.faq-item h3');
+        faqItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const faq = item.parentElement;
+                faq.classList.toggle('active');
+            });
+        });
+
+        // Toggle dropdown menu
+        const userIcon = document.getElementById('userIcon');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        userIcon.addEventListener('click', () => {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.matches('#userIcon')) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

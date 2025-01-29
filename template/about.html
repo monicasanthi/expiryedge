@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="about_styles.css"> -->
+    <title>About Us</title>
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background: url('hero.png') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Blur overlay */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+    background-size: cover;
+    filter: blur(8px); /* Light blur effect on background */
+    z-index: -1;
+}
+
+/* Container for the content */
+.container {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 950px;
+    margin: 50px auto;
+    border: 2px solid #00474f;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: rgba(230, 249, 255, 0.9); /* Slight transparency */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.content {
+    font-style: italic;
+    color: #333;
+    line-height: 1.6;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+</style>
+
+<body>
+    <div class="container">
+        <h1>Know More About Us !!!</h1>
+        <div class="content">
+            <p>
+                <i>Welcome to Expiry Edge—your ultimate solution for smart stock management and expiry date tracking. 
+                    Designed to streamline inventory control, Expiry Edge helps businesses manage
+                    their product stock efficiently while minimizing waste and saving valuable time. 
+                    By scanning product names and expiry dates using a smart recognition system, 
+                    Expiry Edge simplifies how you track and monitor inventory.
+            </p>
+            <p>
+                Our platform ensures that products nearing their expiration are detected early and highlighted, 
+                enabling you to take timely action. With automated reminders and clear notifications, businesses 
+                can stay ahead of potential losses, improve decision-making, and optimize stock rotation seamlessly.
+            </p>
+            <p>
+                At Expiry Edge, we are committed to creating a smarter, eco-conscious future by reducing product 
+                wastage through innovative technology. If you'd like to learn more or need support, we’re here to 
+                help. Together, let’s build a future of smart inventory management!
+            </p>
+        </div>
+        <div class="button-container">
+            <button onclick="goBack()">Back</button>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = "/";
+        }
+    </script>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</html>

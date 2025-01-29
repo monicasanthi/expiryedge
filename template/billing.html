@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing Page</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+      background-size: cover;
+      z-index: -1;
+      filter: blur(5px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .header {
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header .nav .back-arrow {
+    cursor: pointer;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+    .header .icons {
+      display: flex;
+      align-items: center;
+      position: relative;
+      gap: 20px;
+    }
+
+    .header .icons .icon {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: white;
+   }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      display: none;
+    }
+    .dropdown a {
+      color: white;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown a:hover {
+      background-color: #ddd;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      gap: 20px;
+      padding: 20px;
+    }
+    .left-column,
+    .right-column {
+      flex: 1;
+      min-width: 300px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .left-column {
+      flex: 2;
+    }
+    .right-column {
+      flex: 1;
+    }
+    /* .quick-options {
+      margin-bottom: 20px;
+    } */
+    .payment-method {
+      margin-top: 20px;
+    }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .summary-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* For mobile devices */
+  @media (max-width: 768px) {
+    .buttons {
+      flex-wrap: wrap;
+    }
+    button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+  
+  </style>
+</head>
+<body>
+  <div class="background-overlay"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="nav">
+      <!-- <i class="fas fa-arrow-left back-arrow"></i> -->
+    </div>
+    <div class="icons">
+      <i class="fas fa-shopping-cart icon"></i>
+      <div class="dropdown-container">
+        <i class="fas fa-user icon" id="userIcon"></i>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="/">Home</a>
+          <a href="/s_d/">Billing System</a>
+          <a href="/settings/">Settings</a>
+          <a href="/user_signin/">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Search Bar -->
+      <input
+        type="text"
+        class="form-control mb-3"
+        placeholder="Search for items..."
+        id="searchInput"
+      />
+
+      <!-- Quick Options Section
+      <div class="quick-options">
+        <h4>Quick Options</h4>
+        <button class="btn btn-primary">Item 1</button>
+        <button class="btn btn-primary">Item 2</button>
+        <button class="btn btn-primary">Item 3</button>
+      </div> -->
+
+      <!-- Item Details Table -->
+      <table class="table mt-4" id="itemTable">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Title</th>
+            <th>Quantity</th>
+            <th>Original Price</th>
+            <th>Price (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Sample Item</td>
+            <td>2</td>
+            <td>100.00</td>
+            <td>80.00</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" id="dynamicAddItemButton">Add Item </button>
+        <button class="btn btn-primary" id="manualAddItemButton">Add Item </button>
+      </div>
+
+      <!-- Summary Section -->
+      <div>
+        <div class="summary-section">
+          <h3>Summary</h3>
+        </div>
+        <p>Total Items: <span id="totalItems">0</span></p>
+        <p>Subtotal: <span id="subtotal">₹0.00</span></p>
+        <p>Total Tax: <span id="totalTax">₹0.00</span></p>
+
+        <!-- Payment Method -->
+        <div class="payment-method">
+          <label for="paymentMethod" class="form-label">Payment Method</label>
+          <select id="paymentMethod" class="form-select">
+            <option>Cash</option>
+            <option>Card</option>
+            <option>UPI</option>
+            <option>Net Banking</option>
+          </select>
+        </div>
+
+        <p>Total: <span id="total">₹0.00</span></p>
+      </div>
+
+      <!-- Payment and Action Buttons -->
+      <button id="paymentDone" class="btn btn-success mt-3">Payment Done</button>
+      <button id="checkout" class="btn btn-primary disabled mt-3">Checkout</button>
+      <button class="btn btn-secondary mt-3">Hold</button>
+      <button class="btn btn-danger mt-3">Suspend</button>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <h2>Customer Details</h2>
+      <form >
+        <div class="mb-3">
+          <label for="customerName" class="form-label">Name</label>
+          <input type="text" class="form-control" id="customerName" name="name" placeholder="Enter name">
+        </div>
+        <div class="mb-3">
+          <label for="customerEmail" class="form-label">Email</label>
+          <input type="email" class="form-control" id="customerEmail" name="email" placeholder="Enter email">
+        </div>
+        <div class="mb-3">
+          <label for="customerPhone" class="form-label">Phone</label>
+          <input type="text" class="form-control" id="customerPhone" name="phone" placeholder="Enter phone number">
+        </div>
+        
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+    </div>
+  </div>
+
+    <script>
+      const paymentDoneButton = document.getElementById('paymentDone');
+      const checkoutButton = document.getElementById('checkout');
+      const suspendButton = document.querySelector('.btn.btn-danger');
+      const itemTable = document.getElementById("itemTable").querySelector("tbody");
+      const customerNameInput = document.getElementById('customerName');
+      const customerEmailInput = document.getElementById('customerEmail');
+      const customerPhoneInput = document.getElementById('customerPhone');
+    
+      // Payment Done: Enable Checkout button
+      paymentDoneButton.addEventListener('click', () => {
+        checkoutButton.classList.remove('disabled');
+      });
+    
+      // Dynamic Add Item (pre-filled)
+      const dynamicAddItemButton = document.getElementById("dynamicAddItemButton");
+      dynamicAddItemButton.addEventListener("click", () => {
+        const itemCount = itemTable.rows.length + 1;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${itemCount}</td>
+          <td>Sample Item ${itemCount}</td>
+          <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
+          <td data-original-price="50.00">₹50.00</td>
+          <td class="price-cell">₹50.00</td>
+        `;
+        itemTable.appendChild(row);
+    
+        const quantityInput = row.querySelector(".quantity-input");
+        quantityInput.addEventListener("input", calculateTotals);
+    
+        calculateTotals();
+      });
+    
+      // Manual Add Item (empty input fields)
+  manualAddItemButton.addEventListener("click", () => {
+    const itemCount = itemTable.rows.length + 1;
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${itemCount}</td>
+      <td><input type="text" class="form-control manual-input" placeholder="Enter title"></td>
+      <td><input type="number" class="form-control quantity-input" placeholder="Enter quantity" value="1" min="1"></td>
+      <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price"></td>
+      <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price"></td>
+    `;
+    itemTable.appendChild(row);
+    
+    const inputs = row.querySelectorAll("input");
+
+  // Add "Enter" key event listener to navigate to the next input field
+  inputs.forEach((input, index) => {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        } else {
+          inputs[index].blur(); // Blur the last input field to avoid infinite focus
+        }
+      }
+    });
+  });
+  
+    const quantityInput = row.querySelector(".quantity-input");
+    const originalPriceInput = row.querySelector(".original-price-input");
+    const priceInput = row.querySelector(".price-input");
+
+    // Trigger recalculation when quantity changes
+    quantityInput.addEventListener("input", calculateTotals);
+
+    // Trigger recalculation when original price or price is entered
+    const updatePrice = () => calculateTotals();
+    originalPriceInput.addEventListener("blur", updatePrice);
+    priceInput.addEventListener("blur", updatePrice);
+
+    calculateTotals(); // Recalculate totals for the new row
+  });
+
+  // Helper function to calculate totals
+  function calculateTotals() {
+    let totalItems = 0;
+    let subtotal = 0;
+
+    Array.from(itemTable.rows).forEach((row) => {
+      const quantityInput = row.querySelector(".quantity-input");
+      const priceInput = row.querySelector(".price-input");
+
+      if (quantityInput && priceInput) {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+
+        const totalPrice = quantity * price;
+        totalItems += quantity;
+        subtotal += totalPrice;
+      }
+    });
+
+    // Update summary section
+    document.querySelector("#totalItems").textContent = totalItems;
+    document.querySelector("#subtotal").textContent = `₹${subtotal.toFixed(2)}`;
+    const tax = subtotal * 0.05; // Assuming 5% tax
+    document.querySelector("#totalTax").textContent = `₹${tax.toFixed(2)}`;
+    document.querySelector("#total").textContent = `₹${(subtotal + tax).toFixed(2)}`;
+  }
+
+
+    
+      // Reset all fields when Checkout or Suspend is clicked
+      function resetBillingPage() {
+        itemTable.innerHTML = "";
+        customerNameInput.value = "";
+        customerEmailInput.value = "";
+        customerPhoneInput.value = "";
+        checkoutButton.classList.add('disabled');
+        window.location.reload();
+      }
+    
+      // Clear data and show new billing page when "Checkout" is clicked
+      checkoutButton.addEventListener('click', resetBillingPage);
+    
+      // Clear data and show new billing page when "Suspend" is clicked
+      suspendButton.addEventListener('click', resetBillingPage);
+    
+      // User Dropdown Logic
+      const userIcon = document.getElementById('userIcon');
+      const dropdownMenu = document.getElementById('dropdownMenu');
+    
+      userIcon.addEventListener('click', () => {
+        dropdownMenu.style.display =
+          dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+    
+      window.addEventListener('click', (event) => {
+        if (!event.target.matches('#userIcon')) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+    
+      // Search functionality
+      const searchInput = document.getElementById('searchInput');
+      const itemTableRows = itemTable.getElementsByTagName('tr');
+    
+      searchInput.addEventListener('input', function() {
+        const searchQuery = searchInput.value.toLowerCase();
+        Array.from(itemTableRows).forEach(row => {
+          const cells = row.getElementsByTagName('td');
+          const itemName = cells[1]?.textContent.toLowerCase();
+          if (itemName && itemName.includes(searchQuery)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    
+      // Initial setup: Attach event listeners to existing rows
+      Array.from(itemTable.rows).forEach((row) => {
+        const quantityInput = row.querySelector(".quantity-input");
+        if (quantityInput) {
+          quantityInput.addEventListener("input", calculateTotals);
+        }
+      });
+    
+      // Calculate totals on page load
+      calculateTotals();
+    </script>
+  
+  
+</body>
+</html>

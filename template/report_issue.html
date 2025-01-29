@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report an Issue</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Background overlay */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+            background-size: cover;
+            z-index: -1;
+            filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header .nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .nav .back-arrow {
+            margin-right: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .header .icons {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 20px;
+        }
+
+        .header .icons .icon {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            min-width: 150px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            display: none;
+        }
+
+        .dropdown a {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown a:hover {
+            background-color: #ddd;
+        }
+
+        /* Form Styling */
+        .form-container {
+            margin-top: 75px;
+            margin-left: 50px;
+            margin-right: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container input,
+        .form-container textarea {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-container textarea {
+            height: 150px;
+        }
+
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width:99%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: row;
+                padding: 15px;
+            }
+
+            .form-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background overlay -->
+    <div class="background-overlay"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="nav">
+            <i class="fas fa-arrow-left back-arrow"></i>
+        </div>
+        <div class="icons">
+            <i class="fas fa-shopping-cart icon"></i>
+            <i class="fas fa-user icon" id="userIcon"></i>
+            <div class="dropdown" id="dropdownMenu">
+                <a href="/">Home</a>
+                <a href="/settings/">Settings</a>
+                <a href="/user_signin/">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-container">
+        <h2>Report an Issue</h2>
+        <form id="issueForm" method="POST" action="/r_issue/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your Name">
+            
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Your Email" required>
+            
+            <label for="category">Issue Category</label>
+            <select id="category" name="category" required>
+                <option value="bug">Bug</option>
+                <option value="feature_request">Feature Request</option>
+                <option value="account_issue">Account Issue</option>
+                <option value="other">Other</option>
+            </select>
+            
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5" placeholder="Describe the issue in detail" required></textarea>
+            
+            <label for="attachment">Attachment (Optional)</label>
+            <input type="file" id="attachment" name="attachment" accept="image/*">
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for reporting the issue. We will get back to you shortly.</p>
+    </div>
+
+    <!-- Script to handle dropdown and form submission -->
+    <script>
+        // Dropdown toggle
+        const userIcon = document.getElementById('userIcon');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        userIcon.addEventListener('click', () => {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.matches('#userIcon')) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+
+        // Form submission and confirmation
+        // const form = document.getElementById('issueForm');
+        // form.addEventListener('submit', function(event) {
+        //     event.preventDefault(); // Prevent form submission to the server
+
+        //     // Show confirmation message after submission
+        //     alert('Your issue has been reported successfully. Thank you!');
+        //     form.reset(); // Reset the form after submission
+        // });
+    </script>
+</body>
+</html>

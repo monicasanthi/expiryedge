@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restock Products</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+            background-size: cover;
+            z-index: -1;
+            filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .nav {
+            display: flex;
+            align-items: center;
+        }
+        .header .nav .back-arrow {
+            margin-right: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .header .icons {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 20px;
+        }
+        .header .icons .icon {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .dropdown {
+            position: absolute;
+            text-align: left;
+            top: 50px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            min-width: 150px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            display: none;
+        }
+        .dropdown a {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .main-container {
+            margin: 50px auto;
+            max-width: 1200px;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h2 {
+            margin: 0 0 10px 0;
+        }
+        .product-details {
+            display: none;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .product-details.restock {
+            background: #2fc331; /* Green for restock */
+        }
+        .product-details.no-restock {
+            background: #ff6666; /* Red for no restock */
+        }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .product-table th, .product-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="header">
+        <div class="nav">
+            <i class="fas fa-arrow-left back-arrow" onclick="history.back()"></i>
+        </div>
+        <div class="icons">
+            <i class="fas fa-shopping-cart icon"></i>
+            <div class="dropdown-container">
+                <i class="fas fa-user icon" id="userIcon"></i>
+                <div class="dropdown" id="dropdownMenu">
+                    <a href="/">Home</a>
+                    <a href="/o_d/">Dashboard</a>
+                    <a href="/settings/">Settings</a>
+                    <a href="/user_signin/">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="card" onclick="toggleDetails('restockDetails')">
+            <h2>Products to be Restocked</h2>
+        </div>
+        <div id="restockDetails" class="product-details restock">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Product ID</th>
+                        <th>MRP</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in to_be_restocked %}
+                    <tr>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.product_id }}</td>
+                        <td>₹{{ product.price }}</td>
+                        <td>{{ product.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" onclick="toggleDetails('noRestockDetails')">
+            <h2>Products Not to be Restocked</h2>
+        </div>
+        <div id="noRestockDetails" class="product-details no-restock">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Product ID</th>
+                        <th>MRP</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in not_to_be_restocked %}
+                    <tr>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.product_id }}</td>
+                        <td>₹{{ product.price }}</td>
+                        <td>{{ product.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function toggleDetails(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.style.display = section.style.display === 'block' ? 'none' : 'block';
+        }
+
+        const userIcon = document.getElementById('userIcon');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        userIcon.addEventListener('click', () => {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.matches('#userIcon')) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

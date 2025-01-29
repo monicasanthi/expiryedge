@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock List</title>
+  <!-- <link rel="stylesheet" href="productSummary.css"> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body and Background */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+      background-size: cover;
+      z-index: -1;
+      filter: blur(5px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .header {
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header .nav {
+      display: flex;
+      align-items: center;
+    }
+
+    .header .nav .back-arrow {
+      margin-right: 20px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .header .icons {
+      display: flex;
+      align-items: center;
+      position: relative;
+      gap: 20px;
+    }
+
+    .header .icons .icon {
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      display: none;
+    }
+
+    .dropdown a {
+      color: white;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown a:hover {
+      background-color: #ddd;
+    }
+
+    /* Search and Filter Section */
+    .search-filter {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 20px;
+      gap: 10px;
+    }
+
+    .search-filter input,
+    .search-filter select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      flex: 1;
+      margin-bottom: 10px;
+    }
+
+    .search-filter input {
+      width: 70%;
+    }
+
+    .search-filter select {
+      width: 70%;
+    }
+
+    /* Stock Table */
+    .stock-table {
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .stock-table table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .stock-table th,
+    .stock-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      word-wrap: break-word;
+      /* Ensures long notes wrap to the next line */
+    }
+
+    .stock-table th {
+      background: #f4f4f4;
+      font-weight: bold;
+    }
+
+    .stock-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .stock-table .red {
+      color: red;
+    }
+
+    .stock-table .orange {
+      color: orange;
+    }
+
+    .stock-table .green {
+      color: green;
+    }
+
+    /* Remove Button */
+    .remove-btn {
+      background-color: #ff4d4d;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background-color: #cc0000;
+    }
+
+    /* Add Item Button (Floating) */
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: green;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .search-filter {
+        flex-direction: column;
+      }
+
+      .header {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .header .icons {
+        margin-top: 10px;
+      }
+
+      .fab {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px;
+        font-size: 20px;
+      }
+
+      .stock-table table {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="background-overlay"></div>
+
+  <div class="header">
+    <div class="nav">
+      <!-- <i class="fas fa-arrow-left back-arrow" onclick="goBackToMainPage()"></i> -->
+    </div>
+    <div class="icons">
+      <i class="fas fa-shopping-cart icon"></i>
+      <div class="dropdown-container">
+        <i class="fas fa-user icon" id="userIcon"></i>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="/">Home</a>
+          <a href="/o_d/">Dashboard</a>
+          <a href="/settings/">Settings</a>
+          <a href="/user_signin/">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter">
+    <input type="text" placeholder="Search items..." id="searchBox">
+    <select id="filterDropdown">
+      <option value="all">All</option>
+      <option value="good">Good </option>
+      <option value="expiring">Expiring Soon</option>
+      <option value="expired">Expired</option>
+    </select>
+  </div>
+
+  <!-- Stock Items - Table View -->
+  <div class="stock-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="stockTableBody">
+        <!-- Loop through the categorized products -->
+        {% for category, products in categorized_products.items %}
+          {% for product in products %}
+            <tr>
+              <td>{{ product.name }}</td>
+              <td>{{ product.quantity }}</td>
+              <td>{{ product.expiry_date }}</td>
+              <td class="{% if category == 'expired' %}red{% elif category == 'expiring_soon' %}orange{% else %}green{% endif %}">
+                {{ category|capfirst }}
+              </td>
+              <td>{{ product.notes|default:"No notes available" }}</td>
+              <td>
+                <button class="remove-btn" onclick="removeItem('{{ product.id }}')">Remove</button>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Item Button (Floating) -->
+  <div class="fab" onclick="addNewItem()">+</div>
+
+  <script>
+    const userIcon = document.getElementById('userIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    userIcon.addEventListener('click', () => {
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('#userIcon')) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+    document.getElementById("searchBox").addEventListener("input", function () {
+    const searchText = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#stockTableBody tr");
+    rows.forEach(row => {
+        const itemName = row.querySelector("td:first-child").textContent.toLowerCase();
+        if (itemName.includes(searchText)) {
+            row.style.display = ""; // Show row
+        } else {
+            row.style.display = "none"; // Hide row
+        }
+    });
+});
+
+document.getElementById("filterDropdown").addEventListener("change", function () {
+    const filter = this.value;
+    const rows = document.querySelectorAll("#stockTableBody tr");
+    const today = new Date();
+
+    rows.forEach(row => {
+        const expiryCell = row.querySelector("td:nth-child(3)");
+        const expiryText = expiryCell.textContent;
+        const expiryDate = parseExpiryDate(expiryText);
+
+        if (filter === "all") {
+            row.style.display = ""; // Show all rows
+        }  else if (filter === "good" && expiryDate) {
+            const daysToExpiry = (expiryDate - today) / (1000 * 60 * 60 * 24);
+            row.style.display = daysToExpiry > 7 ? "" : "none"; // Show rows with good items
+        }else if (filter === "expiring" && expiryDate) {
+            const daysToExpiry = (expiryDate - today) / (1000 * 60 * 60 * 24);
+            row.style.display = daysToExpiry <= 7 && daysToExpiry >= 0 ? "" : "none"; // Show rows expiring within 7 days
+        } else if (filter === "expired" && expiryDate) {
+            row.style.display = expiryDate < today ? "" : "none"; // Show rows with expired items
+        } else {
+            row.style.display = "none"; // Hide rows that don't match the filter
+        }
+    });
+});
+
+function parseExpiryDate(dateString) {
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+        const [year, month, day] = parts.map(part => parseInt(part, 10));
+        return new Date(year, month - 1, day); // Month is 0-indexed
+    }
+    return null; // Invalid date
+}
+
+
+  </script>
+
+
+</body>
+
+</html>

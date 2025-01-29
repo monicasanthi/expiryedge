@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expired Products</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* General Reset */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Background and Header */
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
+      background-size: cover;
+      z-index: -1;
+      filter: blur(5px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .header {
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      color: white;
+      height: 35px;
+    }
+
+    .header .nav {
+      display: flex;
+      align-items: center;
+    }
+
+    .header .nav .back-arrow {
+      margin-right: 20px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .header .icons {
+      display: flex;
+      align-items: center;
+      position: relative;
+      gap: 20px;
+    }
+
+    .header .icons .icon {
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      display: none;
+    }
+
+    .dropdown a {
+      color: white;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown a:hover {
+      background-color: #ddd;
+    }
+
+    /* Search and Filter Bar */
+    .search-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-filter-bar input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .search-filter-bar input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    /* Table Styling */
+    .expired-table {
+      padding: 20px;
+    }
+
+    .expired-table table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .expired-table th, .expired-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      word-wrap: break-word;
+    }
+
+    .expired-table th {
+      background: #f4f4f4;
+      font-weight: bold;
+    }
+
+    .expired-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .expired-table .red {
+      color: red;
+    }
+
+    /* Remove Button */
+    .remove-btn {
+      background-color: #ff4d4d;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background-color: #cc0000;
+    }
+
+    /* Back Button */
+    .back-btn {
+      display: inline-block;
+      margin: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .back-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .search-filter-bar input {
+        width: 100%;
+      }
+
+      .expired-table th, .expired-table td {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      .header .icons {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background-overlay"></div>
+
+  <div class="header">
+    <div class="nav">
+      <!-- <i class="fas fa-arrow-left back-arrow" onclick="goBackToMainPage()"></i> -->
+      <h1>Expired Products</h1>
+    </div>
+    <div class="icons">
+      <i class="fas fa-shopping-cart icon"></i>
+      <div class="dropdown-container">
+        <i class="fas fa-user icon" id="userIcon"></i>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="/">Home</a>
+          <a href="/o_d/">Dashboard</a>
+          <a href="/settings/">Settings</a>
+          <a href="/user_signin/">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-bar">
+    <input type="text" id="searchInput" placeholder="Search by product name">
+    <input type="date" id="filterDate" placeholder="Filter by expiry date">
+  </div>
+
+  <!-- Expired Products Table -->
+  <div class="expired-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Product ID</th>
+          <th>Quantity</th>
+          <th>Expiry Date</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="expiredTableBody">
+        <!-- Dynamically render expired products -->
+        {% for product in expired_products %}
+          <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ product.product_id }}</td>
+            <td>{{ product.quantity }}</td>
+            <td>{{ product.expiry_date }}</td>
+            <td>{{ product.notes|default:"No notes available" }}</td>
+            <td>
+              <button class="remove-btn" onclick="removeExpiredItem('{{ product.id }}')">Remove</button>
+            </td>
+          </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align: center;">No expired products found.</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <a href="/pro_s/" class="back-btn">Back to Main Page</a>
+
+  <script>
+    // const expiredData = [
+    //   { name: "Bread", product_id:"21", quantity: "1 loaf", expiry: "2024-12-18", notes: "Discard immediately." },
+    //   { name: "Milk", product_id:"28",quantity: "2 packs", expiry: "2024-12-20", notes: "Expired yesterday." }
+    // ];
+
+    // function formatDateToDDMMYYYY(dateStr) {
+    //   const [year, month, day] = dateStr.split("-");
+    //   return `${day}-${month}-${year}`;
+    // }
+
+    // function populateExpiredTable() {
+    //   const tbody = document.getElementById("expiredTableBody");
+    //   tbody.innerHTML = ""; // Clear previous rows
+
+    //   expiredData.forEach((item, index) => {
+    //     const row = `
+    //       <tr>
+    //         <td>${item.name}</td>
+    //         <td>${item.product_id}</td>
+    //         <td>${item.quantity}</td>
+    //         <td>${formatDateToDDMMYYYY(item.expiry)}</td>
+    //         <td>${item.notes}</td>
+    //         <td><button class="remove-btn" onclick="removeExpiredItem(${index})">Remove</button></td>
+    //       </tr>
+    //     `;
+    //     tbody.innerHTML += row;
+    //   });
+    // }
+
+    function filterTable(searchTerm, selectedDate) {
+      const tbody = document.getElementById("expiredTableBody");
+      tbody.innerHTML = "";
+
+      expiredData.forEach((item, index) => {
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesDate = !selectedDate || item.expiry === selectedDate;
+
+        if (matchesSearch && matchesDate) {
+          const row = `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.product_id}</td>
+              <td>${item.quantity}</td>
+            <td>${formatDateToDDMMYYYY(item.expiry)}</td>
+              <td>${item.notes}</td>
+              <td><button class="remove-btn" onclick="removeExpiredItem(${index})">Remove</button></td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        }
+      });
+    }
+
+    function removeExpiredItem(index) {
+      expiredData.splice(index, 1);
+      filterTable(document.getElementById("searchInput").value, document.getElementById("filterDate").value);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      populateExpiredTable();
+
+      const searchInput = document.getElementById("searchInput");
+      const filterDate = document.getElementById("filterDate");
+
+      searchInput.addEventListener("input", () => {
+        filterTable(searchInput.value, filterDate.value);
+      });
+
+      filterDate.addEventListener("change", () => {
+        filterTable(searchInput.value, filterDate.value);
+      });
+    });
+
+    const userIcon = document.getElementById('userIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    userIcon.addEventListener('click', () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    window.addEventListener('click', (event) => {
+      if (!event.target.matches('#userIcon')) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+
+    function goBackToMainPage() {
+      window.location.href = "/o_d/";
+    }
+  </script>
+</body>
+</html>
