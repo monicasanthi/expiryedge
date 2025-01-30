@@ -178,6 +178,7 @@
           <tr>
             <th>Item</th>
             <th>Title</th>
+            <th>Weight</th>
             <th>Quantity</th>
             <th>Original Price</th>
             <th>Price (₹)</th>
@@ -187,6 +188,7 @@
           <tr>
             <td>1</td>
             <td>Sample Item</td>
+            <td>500g</td>
             <td>2</td>
             <td>100.00</td>
             <td>80.00</td>
@@ -231,7 +233,8 @@
     <!-- Right Column -->
     <div class="right-column">
       <h2>Customer Details</h2>
-      <form >
+      <form method="POST" action="/billing/">
+        {% csrf_token %}
         <div class="mb-3">
           <label for="customerName" class="form-label">Name</label>
           <input type="text" class="form-control" id="customerName" name="name" placeholder="Enter name">
@@ -241,7 +244,7 @@
           <input type="email" class="form-control" id="customerEmail" name="email" placeholder="Enter email">
         </div>
         <div class="mb-3">
-          <label for="customerPhone" class="form-label">Phone</label>
+          <label for="customerPhone" class="form-label">Phone Number</label>
           <input type="text" class="form-control" id="customerPhone" name="phone" placeholder="Enter phone number">
         </div>
         
@@ -272,6 +275,7 @@
         row.innerHTML = `
           <td>${itemCount}</td>
           <td>Sample Item ${itemCount}</td>
+          <td><input type="number" class="form-control weight-input" value="1" min="0.1" step="0.1"></td>
           <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
           <td data-original-price="50.00">₹50.00</td>
           <td class="price-cell">₹50.00</td>
@@ -292,6 +296,7 @@
     row.innerHTML = `
       <td>${itemCount}</td>
       <td><input type="text" class="form-control manual-input" placeholder="Enter title"></td>
+      <td><input type="text" class="form-control" placeholder="Enter weight"></td>
       <td><input type="number" class="form-control quantity-input" placeholder="Enter quantity" value="1" min="1"></td>
       <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price"></td>
       <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price"></td>

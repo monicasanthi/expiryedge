@@ -61,9 +61,9 @@ def restock_products(request):
     return render(request, 'restock_products.html', context)
 def billing(request):
     if request.method=="POST":
-        name = request.POST["Product_Name"]
+        name = request.POST["name"]
         email = request.POST["email"]
-        phoneno = request.POST['phoneno']
+        phoneno = request.POST['phone']
         transactionid = request.POST['transactionid']
         
 

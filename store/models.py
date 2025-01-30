@@ -34,3 +34,4 @@ class billing_page(models.Model):
     email= models.CharField(max_length=255)
     phoneno= models.CharField(max_length=255)
     transactionid= models.CharField(max_length=255)
+    # email = models.EmailField()
