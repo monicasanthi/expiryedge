@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     /* General Reset */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -33,27 +39,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 20px;
+      padding: 5px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
       color: white;
-      height: 35px;
+      flex-wrap: wrap;
     }
 
-    .header .nav {
-      display: flex;
-      align-items: center;
-    }
-
-    .header .nav .back-arrow {
-      margin-right: 20px;
-      cursor: pointer;
+    .header-title {
+      font-size: 30px;
       color: white;
-      font-size: 1.5rem;
+      font-weight: bold;
+      margin-left: 15px;
     }
-
-    .header .icons {
+  
+    .icons {
       display: flex;
       align-items: center;
       position: relative;
@@ -62,18 +63,49 @@
 
     .header .icons .icon {
       cursor: pointer;
-      font-size: 1.5rem;
+      font-size: 24px;
       color: white;
+    }
+
+    .title {
+            font-size: 25px;
+            font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 15px;
+    }
+
+    .left-section {
+        display: flex;
+        align-items: center;
+    }
+    /* Logo Container */
+    .left-section {
+        display: flex;
+        align-items: center;
+    }
+
+    .logo {
+        width: 50px; /* Adjust size as needed */
+        height: auto;
+    }
+    /* Dropdown Profile */
+    .dropdown-container {
+        position: relative;
+        display: inline-block;
     }
 
     .dropdown {
       position: absolute;
+      text-align: left;
       top: 50px;
       right: 0;
       background-color: rgba(0, 0, 0, 0.8);
+      border-radius: 5px;
       min-width: 150px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      z-index: 1;
+      z-index: 10;
       display: none;
     }
 
@@ -86,6 +118,21 @@
 
     .dropdown a:hover {
       background-color: #ddd;
+    }
+
+    .dropdown-arrow {
+      font-size: 14px;
+      color: white;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    /* Profile Container */
+    .profile-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        display: inline-block;
     }
 
     /* Search and Filter Bar */
@@ -176,17 +223,31 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
-      .search-filter-bar input {
-        width: 100%;
+      .header {
+          flex-direction: row;
+          align-items: center;
+          text-align: center;
+        }
+        .left-section {
+          justify-content: center;
+        }
+        .icons {
+          margin-top: 10px;
+        }
+        .search-filter-bar input {
+          width: 100%;
       }
 
       .expired-table th, .expired-table td {
-        padding: 10px;
+        padding: 5px;
         font-size: 14px;
+      }
+      .header-title{
+        font-size: 15px !important;
       }
 
       .header .icons {
-        gap: 10px;
+        gap: 15px;
       }
     }
   </style>
@@ -196,14 +257,18 @@
   <div class="background-overlay"></div>
 
   <div class="header">
-    <div class="nav">
-      <!-- <i class="fas fa-arrow-left back-arrow" onclick="goBackToMainPage()"></i> -->
-      <h1>Expired Products</h1>
+    <div class="left-section">
+      <img src="{% static 'images/logo.png' %}" alt="Company Logo" class="logo">
+      <h2 class="header-title">Expired Products</h2>
     </div>
     <div class="icons">
       <i class="fas fa-shopping-cart icon"></i>
+
       <div class="dropdown-container">
         <i class="fas fa-user icon" id="userIcon"></i>
+        <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
+        <span class="profile-name">John Doe</span>
+
         <div class="dropdown" id="dropdownMenu">
           <a href="/">Home</a>
           <a href="/o_d/">Dashboard</a>
