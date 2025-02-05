@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Barcode Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #video { width: 80%; max-width: 600px; border: 2px solid #ddd; border-radius: 8px; }
+        #scanned-data { margin-top: 20px; }
+        button { padding: 10px 20px; margin: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Barcode Scanner</h1>
+    <video id="video" autoplay></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div>
+        <button onclick="startScanning()">Start Scanning</button>
+        <button onclick="clearData()">Clear Data</button>
+    </div>
+    <div id="scanned-data">
+        <h2>Scanned Barcodes</h2>
+        <ul id="barcode-list"></ul>
+    </div>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const barcodeList = document.getElementById('barcode-list');
+
+        const socket = new WebSocket('ws://localhost:8001/ws/scan/');
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.barcode && !barcodeList.innerHTML.includes(data.barcode)) {
+                const li = document.createElement('li');
+                li.textContent = data.barcode;
+                barcodeList.appendChild(li);
+            }
+        };
+
+        async function startScanning() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+
+            setInterval(() => {
+                captureFrame();
+            }, 500); // Reduced interval for better performance
+        }
+
+        function captureFrame() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = canvas.toDataURL('image/png');
+            socket.send(JSON.stringify({ image: imageData }));
+        }
+
+        function clearData() {
+            barcodeList.innerHTML = '';
+        }
+    </script>
+</body>
+</html>

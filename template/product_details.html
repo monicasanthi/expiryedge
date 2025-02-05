@@ -4,10 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> -->
     <title>Product Details - Expiry Edge</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- <link rel="stylesheet" href="product_details.css"> -->
+    <!-- <link rel="stylesheet" href="{% static 'bootstrap.min.css' }%"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        .modal-body { font-family: Arial, sans-serif; text-align: center; }
+        #video { width: 80%; max-width: 600px; border: 2px solid #ddd; border-radius: 8px; }
+        #scanned-data { margin-top: 20px; }
+        .modolbutton { padding: 10px 20px; margin: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .modolbutton:hover { background-color: #0056b3; }
+    </style>
 </head>
 <script>
     {% for m in messages %}
@@ -220,7 +229,13 @@ button {
                 <input type="date" id="expiry-date" name="Expiry_Date">
 
                 <label for="product-id">Product Id:</label>
-                <input type="text" id="product-id" name="Product_id" placeholder="Enter product id">
+                <div style="display: flex; justify-content: space-between; gap:10px;">
+                    <input type="text" id="product-id" name="Product_id" placeholder="Enter product id" required>
+                    <!-- <button style=" font-size: 12px; height: 46px;">Scan Now</button> -->
+                    <button style=" font-size: 12px; height: 46px;" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+                       Scan
+                      </button>
+                </div>
 
                 <label for="quantity">Quantity:</label>
                 <input type="text" id="quantity" name="quantity" placeholder="Enter the quantity">
@@ -243,6 +258,81 @@ button {
             </form>
         </main>
     </div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Barcode Scanner</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+        <div class="modal-body">
+         
+            <video id="video" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div>
+                <button class="modolbutton" onclick="startScanning()">Start Scanning</button>
+                <button class="modolbutton" onclick="clearData()">Clear Data</button>
+            </div>
+            <div id="scanned-data">
+                <h2>Scanned Barcodes</h2>
+                <ul id="barcode-list"></ul>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+    </div>
+    </div>
+</div>        
+<!-- end modal -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const barcodeList = document.getElementById('barcode-list');
+
+    const socket = new WebSocket('ws://localhost:8001/ws/scan/');
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.barcode && !barcodeList.innerHTML.includes(data.barcode)) {
+            const li = document.createElement('li');
+            li.textContent = data.barcode;
+            barcodeList.appendChild(li);
+        }
+    };
+
+    async function startScanning() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        setInterval(() => {
+            captureFrame();
+        }, 500); // Reduced interval for better performance
+    }
+
+    function captureFrame() {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/png');
+        socket.send(JSON.stringify({ image: imageData }));
+    }
+
+    function clearData() {
+        barcodeList.innerHTML = '';
+    }
+</script>
     <script>
         // Get the profile icon and dropdown menu
         const profileIcon = document.getElementById('profile-icon');

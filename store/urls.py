@@ -22,6 +22,9 @@ urlpatterns=[
     path('faq/',views.faq),
     path('r_issue/',views.report_issue),
     path('t_o_s/',views.terms_of_service),
+
+    # path("", views.scanner_page, name="scanner_page"),  # Render the HTML page
+    path("scan/", views.barcode_scanner, name="barcode_scanner"),  # API for scanning
     
     
 

@@ -1,9 +1,41 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from sympy import Product
 from .models import *
 from django.utils.timezone import now
 from datetime import datetime, timedelta
+
+import cv2
+import numpy as np
+import base64
+import json
+from django.http import JsonResponse
+from pyzbar.pyzbar import decode
+from django.views.decorators.csrf import csrf_exempt
+
+def scanner_page(request):
+    return render(request, 'scanner.html')
+
+
+@csrf_exempt
+def barcode_scanner(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        image_data = data.get('image')
+
+        if image_data:
+            # Convert base64 image to OpenCV format
+            encoded_data = image_data.split(',')[1]
+            nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+            # Decode barcode
+            barcodes = decode(img)
+            for barcode in barcodes:
+                barcode_data = barcode.data.decode('utf-8')
+                return JsonResponse({'barcode': barcode_data})
+
+    return JsonResponse({'barcode': None})
+
 
 # Create your views here.
 def index(request):

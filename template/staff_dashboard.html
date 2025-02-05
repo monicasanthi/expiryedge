@@ -182,6 +182,11 @@ title {
 }
 </style>
 <body>
+    <script>
+        {% for m in messages %}
+        alert('{{m}}');
+        {% endfor %}
+    </script>
     <!-- Navbar -->
     <header class="navbar">
         <!-- <div class="nav-left">
