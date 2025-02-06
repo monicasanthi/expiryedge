@@ -238,13 +238,13 @@ button {
                 </div>
 
                 <label for="quantity">Quantity:</label>
-                <input type="text" id="quantity" name="quantity" placeholder="Enter the quantity">
+                <input type="text" id="quantity" name="quantity" placeholder="Enter the quantity" required>
                 
                 <label for="mrp">MRP:</label>
-                <input type="text" id="mrp" name="mrp" placeholder="Enter the mrp">
+                <input type="text" id="mrp" name="mrp" placeholder="Enter the mrp" required>
 
                 <label for="price">Price:</label>
-                <input type="text" id="price" name="price" placeholder="Enter the price">
+                <input type="text" id="price" name="price" placeholder="Enter the price" required>
 
                 <!-- Notes -->
                 <label for="notes">Notes:</label>
@@ -291,7 +291,7 @@ button {
     </div>
 </div>        
 <!-- end modal -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script>
@@ -303,20 +303,39 @@ button {
 
     socket.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        if (data.barcode && !barcodeList.innerHTML.includes(data.barcode)) {
-            const li = document.createElement('li');
-            li.textContent = data.barcode;
-            barcodeList.appendChild(li);
+        console.log("Scanned Barcode:", data.barcode); // Debugging line
+
+        if (data.barcode) {
+            const productIdField = document.getElementById('product-id');
+            if (productIdField) {
+                productIdField.value = data.barcode;
+            } else {
+                console.error("Product ID input field not found!");
+            }
+
+            // Close modal using jQuery
+            $('#exampleModalCenter').modal('hide');
+
+            // Close modal using Bootstrap 5 vanilla JavaScript
+            const modalElement = document.getElementById('exampleModalCenter');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
         }
     };
 
     async function startScanning() {
+        try{
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
 
         setInterval(() => {
             captureFrame();
         }, 500); // Reduced interval for better performance
+        } catch (error) {
+            console.error("Error accessing camera:", error);
+        }
     }
 
     function captureFrame() {
@@ -332,6 +351,15 @@ button {
     function clearData() {
         barcodeList.innerHTML = '';
     }
+
+    document.getElementById("Product-id").addEventListener("input", function () {
+    let value = this.value;
+    if (value.length > 6) {
+        this.value = value.slice(-6);
+    }
+});
+
+
 </script>
     <script>
         // Get the profile icon and dropdown menu
@@ -350,7 +378,14 @@ button {
                 dropdownMenu.style.display = 'none';
             }
         });
+        document.getElementById("Product_id").addEventListener("input", function () {
+            let value = this.value;
+            if (value.length > 6) {
+                this.value = value.slice(-6);
+            }
+        });
+
     </script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script> -->
 </body>
 </html>

@@ -75,9 +75,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'expiryedge',
         'USER': 'root',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',  # or the server IP
-        'PORT': '3308',  # Add the custom MySQL port here
+        'PASSWORD': '0000',
         'OPTIONS': {
             'charset': 'utf8mb4',
             'sql_mode': 'traditional',

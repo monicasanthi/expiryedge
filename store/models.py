@@ -15,7 +15,7 @@ class productdetails(models.Model):
     staffID= models.CharField(max_length=255)
     name= models.CharField(max_length=255)
     expiry_date= models.CharField(max_length=255)
-    product_id= models.CharField(max_length=255)
+    product_id= models.CharField(max_length=6)
     quantity= models.CharField(max_length=255)
     mrp= models.CharField(max_length=255, null=True)
     price= models.CharField(max_length=255,null=True)

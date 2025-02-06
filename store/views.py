@@ -55,11 +55,14 @@ def product_details(request):
         staffid = request.session['id']
         name = request.POST["Product_Name"]
         expiry_date = request.POST["Expiry_Date"]
-        product_id = request.POST["Product_id"]
+        product_id = request.POST["Product_id"][-6:]
         quantity = request.POST["quantity"]
         mrp = request.POST["mrp"]
         price = request.POST["price"]
         notes = request.POST["notes"]
+
+        print(f"Original Product ID: {request.POST['Product_id']}")
+        print(f"Stored Product ID: {product_id}")
 
         productdetails(name=name,staffID=staffid,expiry_date=expiry_date,product_id=product_id,quantity=quantity,notes=notes,mrp=mrp,price=price).save()
         messages.success(request, 'Details stored successfully.')
