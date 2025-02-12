@@ -101,7 +101,8 @@ def billing(request):
                             'quantity': product.quantity,
                             'mrp': product.mrp,
                             'price': product.price,
-                            'expiry_date': product.expiry_date
+                            'expiry_date': product.expiry_date,
+                            'weight': product.weight
                         }
                     })
                 except productdetails.DoesNotExist:
@@ -272,3 +273,55 @@ def barcode_scanner(request):
                 return JsonResponse({'barcode': barcode_data})
 
     return JsonResponse({'barcode': None})
+
+@csrf_exempt
+def save_billing(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            
+            # Generate a unique transaction ID (you can modify this format)
+            transaction_id = f"BILL-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
+            # Save billing page details
+            billing = billing_page.objects.create(
+                name=data['customer']['name'],
+                email=data['customer']['email'],
+                phoneno=data['customer']['phone'],
+                address=data['customer']['address'],
+                transactionid=transaction_id
+            )
+            
+            # Save each product in the billing
+            for item in data['items']:
+                billing_product.objects.create(
+                    item=str(item['index']),
+                    title=item['name'],
+                    weight=item['weight'],
+                    quantity=item['quantity'],
+                    original_price=item['originalPrice'],
+                    price=item['price'],
+                    total_item=len(data['items']),
+                    sub_total=data['summary']['subtotal'],
+                    total_tax=data['summary']['tax'],
+                    total=data['summary']['total'],
+                    payment_method='Cash',  # You can modify this as needed
+                    billing_id=transaction_id
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Billing details saved successfully',
+                'transaction_id': transaction_id
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })

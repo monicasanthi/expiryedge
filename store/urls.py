@@ -13,6 +13,7 @@ urlpatterns=[
     path('p_d/',views.product_details),
     path('p_list/',views.product_list),
     path('billing/',views.billing),
+    path('save_billing/', views.save_billing, name='save_billing'),
     path('stock_m/',views.stock_maintenance),
     path('r_s/',views.restock_products),
 

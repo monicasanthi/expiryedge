@@ -273,14 +273,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>Sample Item</td>
-            <td>500g</td>
-            <td>2</td>
-            <td>100.00</td>
-            <td>80.00</td>
-          </tr>
+          
         </tbody>
       </table>
       <div class="d-flex justify-content-between">
@@ -312,8 +305,8 @@
       </div>
 
       <!-- Payment and Action Buttons -->
-      <button id="paymentDone" class="btn btn-success mt-3">Payment Done</button>
-      <button id="checkout" class="btn btn-primary disabled mt-3">Checkout</button>
+      <button id="paymentDone" class="btn btn-success mt-3">Submit</button>
+      <!-- <button id="checkout" class="btn btn-primary disabled mt-3">Checkout</button> -->
       <button class="btn btn-secondary mt-3">Hold</button>
       <button class="btn btn-danger mt-3">Suspend</button>
     </div>
@@ -321,8 +314,8 @@
     <!-- Right Column -->
     <div class="right-column">
       <h2>Customer Details</h2>
-      <form method="POST" action="/billing/">
-        {% csrf_token %}
+     
+        
         <div class="mb-3">
           <label for="customerName" class="form-label">Name</label>
           <input type="text" class="form-control" id="customerName" name="name" placeholder="Enter name">
@@ -335,9 +328,13 @@
           <label for="customerPhone" class="form-label">Phone Number</label>
           <input type="text" class="form-control" id="customerPhone" name="phone" placeholder="Enter phone number">
         </div>
+        <div class="mb-3">
+          <label for="customerPhone" class="form-label">Address</label>
+          <input type="text" class="form-control" id="customerAddress" name="address" placeholder="Enter address">
+        </div>
         
-        <button type="submit" class="btn btn-success">Submit</button>
-      </form>
+        
+  
     </div>
   </div>
   <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -382,7 +379,7 @@
   const barcodeList = document.getElementById('barcode-list');
   const manualAddItemButton = document.getElementById("manualAddItemButton");
   const paymentDoneButton = document.getElementById('paymentDone');
-  const checkoutButton = document.getElementById('checkout');
+  // const checkoutButton = document.getElementById('checkout');
 
   // Function to get CSRF token
   function getCookie(name) {
@@ -458,6 +455,8 @@
               console.log("Product data:", data);
               if (data.success) {
                   addItemToTable(data.product);
+                  // Calculate totals after adding the item
+                  calculateTotals();
               } else {
                   alert('Product not found: ' + data.error);
               }
@@ -470,7 +469,7 @@
           $('#exampleModalCenter').modal('hide');
       }
   };
-
+  
   // Function to add item to table
   function addItemToTable(product, isManual = false) {
       const itemCount = itemTable.rows.length + 1;
@@ -489,7 +488,7 @@
           row.innerHTML = `
               <td>${itemCount}</td>
               <td>${product.name}</td>
-              <td data-weight="1">1 kg</td>
+              <td data-weight="1">${product.weight}</td>
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td data-original-price="${product.mrp}">${product.mrp}</td>
               <td><input type="number" class="form-control price-input" value="${product.price}" min="0" step="0.01"></td>
@@ -573,17 +572,15 @@
   calculateTotals();
 </script>
 <script>
-  const paymentDoneButton = document.getElementById('paymentDone');
-  const checkoutButton = document.getElementById('checkout');
   const suspendButton = document.querySelector('.btn.btn-danger');
   const customerNameInput = document.getElementById('customerName');
   const customerEmailInput = document.getElementById('customerEmail');
   const customerPhoneInput = document.getElementById('customerPhone');
     
   // Payment Done: Enable Checkout button
-  paymentDoneButton.addEventListener('click', () => {
-    checkoutButton.classList.remove('disabled');
-  });
+  //paymentDoneButton.addEventListener('click', () => {
+    //checkoutButton.classList.remove('disabled');
+  //});
     
   // Reset all fields when Checkout or Suspend is clicked
   function resetBillingPage() {
@@ -591,12 +588,12 @@
     customerNameInput.value = "";
     customerEmailInput.value = "";
     customerPhoneInput.value = "";
-    checkoutButton.classList.add('disabled');
+    // checkoutButton.classList.add('disabled');
     window.location.reload();
   }
     
   // Clear data and show new billing page when "Checkout" is clicked
-  checkoutButton.addEventListener('click', resetBillingPage);
+  // checkoutButton.addEventListener('click', resetBillingPage);
     
   // Clear data and show new billing page when "Suspend" is clicked
   suspendButton.addEventListener('click', resetBillingPage);
@@ -643,6 +640,71 @@
     
   // Calculate totals on page load
   calculateTotals();
+  
+  // Payment Done: Save billing details
+  paymentDoneButton.addEventListener('click', () => {
+    // Get all items from the table
+    const itemTable = document.getElementById('itemTable');
+    const rows = itemTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    const items = [];
+    
+    for (let i = 0; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName('td');
+      items.push({
+        index: i + 1,
+        name: cells[1].textContent,
+        weight: cells[2].textContent,
+        quantity: cells[3].textContent,
+        originalPrice: cells[4].textContent.replace('₹', '').trim(),
+        price: cells[5].textContent.replace('₹', '').trim()
+      });
+    }
+    
+    // Get customer details
+    const customerData = {
+      name: document.getElementById('customerName').value,
+      email: document.getElementById('customerEmail').value,
+      phone: document.getElementById('customerPhone').value,
+      address: document.getElementById('customerAddress').value
+    };
+    
+    // Get summary details
+    const summaryData = {
+      subtotal: document.getElementById('subtotal').textContent.replace('₹', '').trim(),
+      tax: document.getElementById('totalTax').textContent.replace('₹', '').trim(),
+      total: document.getElementById('total').textContent.replace('₹', '').trim()
+    };
+    
+    // Prepare data for submission
+    const billingData = {
+      customer: customerData,
+      items: items,
+      summary: summaryData
+    };
+    
+    // Send data to server
+    fetch('/save_billing/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(billingData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Billing saved successfully!\nTransaction ID: ' + data.transaction_id);
+        resetBillingPage();
+      } else {
+        alert('Error saving billing: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error saving billing details');
+    });
+  });
 </script>
   
   
