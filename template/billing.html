@@ -9,6 +9,9 @@
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"rel="stylesheet"/>
   <link
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"rel="stylesheet"/>
+
+    
+    
   <style>
     * {
     margin: 0;
@@ -202,6 +205,13 @@
   }
   
   </style>
+  <style>
+    .modal-body { font-family: Arial, sans-serif; text-align: center; }
+    #video { width: 80%; max-width: 600px; border: 2px solid #ddd; border-radius: 8px; }
+    #scanned-data { margin-top: 20px; }
+    .modolbutton { padding: 10px 20px; margin: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .modolbutton:hover { background-color: #0056b3; }
+</style>
 </head>
 <body>
   <div class="background-overlay"></div>
@@ -209,7 +219,7 @@
   <!-- Header -->
   <div class="header">
     <div class="left-section">
-      <img src="{% static 'images/logo.png' %}" alt="Company Logo" class="logo">
+      <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
       <h2 class="header-title">Billing Details</h2>
     </div> 
     
@@ -219,8 +229,7 @@
       <div class="dropdown-container">
         <i class="fas fa-user icon" id="userIcon"></i>
         <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
-        <span class="profile-name">John Doe</span>
-
+        <span class="profile-name"> Santhi Prasad </span>
         <div class="dropdown" id="dropdownMenu" style="margin-right: 10px;">
           <a href="/">Home</a>
           <a href="/s_d/">Billing System</a>
@@ -275,7 +284,7 @@
         </tbody>
       </table>
       <div class="d-flex justify-content-between">
-        <button class="btn btn-secondary" id="dynamicAddItemButton">Add Item </button>
+        <button class="btn btn-secondary" data-toggle="modal" data-target="#exampleModalCenter" >Add Item </button>
         <button class="btn btn-primary" id="manualAddItemButton">Add Item </button>
       </div>
 
@@ -331,190 +340,310 @@
       </form>
     </div>
   </div>
+  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Barcode Scanner</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+        <div class="modal-body">
+         
+            <video id="video" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div>
+                <button class="modolbutton" onclick="startScanning()">Start Scanning</button>
+                <button class="modolbutton" onclick="clearData()">Clear Data</button>
+            </div>
+            <div id="scanned-data">
+                <h2>Scanned Barcodes</h2>
+                <ul id="barcode-list"></ul>
+            </div>
 
-    <script>
-      const paymentDoneButton = document.getElementById('paymentDone');
-      const checkoutButton = document.getElementById('checkout');
-      const suspendButton = document.querySelector('.btn.btn-danger');
-      const itemTable = document.getElementById("itemTable").querySelector("tbody");
-      const customerNameInput = document.getElementById('customerName');
-      const customerEmailInput = document.getElementById('customerEmail');
-      const customerPhoneInput = document.getElementById('customerPhone');
-    
-      // Payment Done: Enable Checkout button
-      paymentDoneButton.addEventListener('click', () => {
-        checkoutButton.classList.remove('disabled');
-      });
-    
-      // Dynamic Add Item (pre-filled)
-      const dynamicAddItemButton = document.getElementById("dynamicAddItemButton");
-      dynamicAddItemButton.addEventListener("click", () => {
-        const itemCount = itemTable.rows.length + 1;
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${itemCount}</td>
-          <td>Sample Item ${itemCount}</td>
-          <td data-weight="1">1 kg</td>
-          <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
-          <td data-original-price="50.00">50.00</td>
-          <td><input type="number" class="form-control price-input" value="50.00" min="0"></td>
-          <td class="price-cell">₹50.00</td>
-        `;
-        itemTable.appendChild(row);
-    
-        const quantityInput = row.querySelector(".quantity-input");
-        const priceInput = row.querySelector(".price-input");
-        const priceCell = row.querySelector(".price-cell");
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+    </div>
+    </div>
+</div>        
+<!-- end modal -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+  // Global variables
+  const itemTable = document.querySelector("table tbody");
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const barcodeList = document.getElementById('barcode-list');
+  const manualAddItemButton = document.getElementById("manualAddItemButton");
+  const paymentDoneButton = document.getElementById('paymentDone');
+  const checkoutButton = document.getElementById('checkout');
 
-    
-        function updateTotalPrice() {
-        const quantity = parseFloat(quantityInput.value) || 1;
-        const price = parseFloat(priceInput.value) || 0;
-        const totalPrice = price * quantity;
-        priceCell.textContent = `₹${totalPrice.toFixed(2)}`;
-        calculateTotals();
-    }
-
-        quantityInput.addEventListener("input", updateTotalPrice);
-        priceInput.addEventListener("input", updateTotalPrice);
-
-        calculateTotals();
-      });
-    
-      // Manual Add Item (empty input fields)
-      manualAddItemButton.addEventListener("click", () => {
-      const itemCount = itemTable.rows.length + 1;
-      const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${itemCount}</td>
-      <td><input type="text" class="form-control manual-input" placeholder="Enter title"></td>
-      <td><input type="text" class="form-control" placeholder="Enter weight"></td>
-      <td><input type="number" class="form-control quantity-input" placeholder="Enter quantity" value="1" min="1"></td>
-      <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price"></td>
-      <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price"></td>
-    `;
-    itemTable.appendChild(row);
-    
-    const inputs = row.querySelectorAll("input");
-
-  // Add "Enter" key event listener to navigate to the next input field
-  inputs.forEach((input, index) => {
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (index < inputs.length - 1) {
-          inputs[index + 1].focus();
-        } else {
-          inputs[index].blur(); // Blur the last input field to avoid infinite focus
-        }
+  // Function to get CSRF token
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
       }
-    });
-  });
-  
-    const quantityInput = row.querySelector(".quantity-input");
-    const originalPriceInput = row.querySelector(".original-price-input");
-    const priceInput = row.querySelector(".price-input");
-
-    // Trigger recalculation when quantity changes
-    quantityInput.addEventListener("input", calculateTotals);
-
-    // Trigger recalculation when original price or price is entered
-    const updatePrice = () => calculateTotals();
-    originalPriceInput.addEventListener("blur", updatePrice);
-    priceInput.addEventListener("blur", updatePrice);
-
-    calculateTotals(); // Recalculate totals for the new row
-  });
-
-  // Helper function to calculate totals
-  function calculateTotals() {
-    let totalItems = 0;
-    let subtotal = 0;
-
-    Array.from(itemTable.rows).forEach((row) => {
-      const quantityInput = row.querySelector(".quantity-input");
-      const priceInput = row.querySelector(".price-input");
-
-      if (quantityInput && priceInput) {
-        const quantity = parseFloat(quantityInput.value) || 0;
-        const price = parseFloat(priceInput.value) || 0;
-
-        const totalPrice = quantity * price;
-        totalItems += quantity;
-        subtotal += totalPrice;
-      }
-    });
-
-    // Update summary section
-    document.querySelector("#totalItems").textContent = totalItems;
-    document.querySelector("#subtotal").textContent = `₹${subtotal.toFixed(2)}`;
-    const tax = subtotal * 0.05; // Assuming 5% tax
-    document.querySelector("#totalTax").textContent = `₹${tax.toFixed(2)}`;
-    document.querySelector("#total").textContent = `₹${(subtotal + tax).toFixed(2)}`;
+      return cookieValue;
   }
 
+  // Calculate totals function
+  function calculateTotals() {
+      let totalItems = 0;
+      let subtotal = 0;
 
-    
-      // Reset all fields when Checkout or Suspend is clicked
-      function resetBillingPage() {
-        itemTable.innerHTML = "";
-        customerNameInput.value = "";
-        customerEmailInput.value = "";
-        customerPhoneInput.value = "";
-        checkoutButton.classList.add('disabled');
-        window.location.reload();
-      }
-    
-      // Clear data and show new billing page when "Checkout" is clicked
-      checkoutButton.addEventListener('click', resetBillingPage);
-    
-      // Clear data and show new billing page when "Suspend" is clicked
-      suspendButton.addEventListener('click', resetBillingPage);
-    
-      // User Dropdown Logic
-      const userIcon = document.getElementById('userIcon');
-      const dropdownMenu = document.getElementById('dropdownMenu');
-    
-      userIcon.addEventListener('click', () => {
-        dropdownMenu.style.display =
-          dropdownMenu.style.display === 'block' ? 'none' : 'block';
-      });
-    
-      window.addEventListener('click', (event) => {
-        if (!event.target.matches('#userIcon')) {
-          dropdownMenu.style.display = 'none';
-        }
-      });
-    
-      // Search functionality
-      const searchInput = document.getElementById('searchInput');
-      const itemTableRows = itemTable.getElementsByTagName('tr');
-    
-      searchInput.addEventListener('input', function() {
-        const searchQuery = searchInput.value.toLowerCase();
-        Array.from(itemTableRows).forEach(row => {
-          const cells = row.getElementsByTagName('td');
-          const itemName = cells[1]?.textContent.toLowerCase();
-          if (itemName && itemName.includes(searchQuery)) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-      });
-    
-      // Initial setup: Attach event listeners to existing rows
       Array.from(itemTable.rows).forEach((row) => {
-        const quantityInput = row.querySelector(".quantity-input");
-        if (quantityInput) {
-          quantityInput.addEventListener("input", calculateTotals);
-        }
+          const quantityInput = row.querySelector(".quantity-input");
+          const priceInput = row.querySelector(".price-input");
+
+          if (quantityInput && priceInput) {
+              const quantity = parseFloat(quantityInput.value) || 0;
+              const price = parseFloat(priceInput.value) || 0;
+              totalItems += quantity;
+              subtotal += price; // Price is already total (quantity * base price)
+          }
       });
+
+      // Update summary section
+      document.querySelector("#totalItems").textContent = totalItems;
+      document.querySelector("#subtotal").textContent = `₹${subtotal.toFixed(2)}`;
+      const tax = subtotal * 0.05; // Assuming 5% tax
+      document.querySelector("#totalTax").textContent = `₹${tax.toFixed(2)}`;
+      document.querySelector("#total").textContent = `₹${(subtotal + tax).toFixed(2)}`;
+  }
+
+  // WebSocket setup for barcode scanning
+  const socket = new WebSocket('ws://localhost:8001/ws/scan/');
+
+  socket.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      console.log("Scanned Barcode:", data.barcode);
+
+      if (data.barcode) {
+          const productId = data.barcode.slice(-6);
+          console.log("Fetching details for product ID:", productId);
+          
+          // Get CSRF token
+          const csrftoken = getCookie('csrftoken');
+          
+          // Fetch product details using AJAX
+          fetch('/billing/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrftoken
+              },
+              body: JSON.stringify({
+                  product_id: productId
+              })
+          })
+          .then(response => {
+              console.log("Response received:", response);
+              return response.json();
+          })
+          .then(data => {
+              console.log("Product data:", data);
+              if (data.success) {
+                  addItemToTable(data.product);
+              } else {
+                  alert('Product not found: ' + data.error);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('Error fetching product details: ' + error);
+          });
+
+          $('#exampleModalCenter').modal('hide');
+      }
+  };
+
+  // Function to add item to table
+  function addItemToTable(product, isManual = false) {
+      const itemCount = itemTable.rows.length + 1;
+      const row = document.createElement("tr");
+      
+      if (isManual) {
+          row.innerHTML = `
+              <td>${itemCount}</td>
+              <td><input type="text" class="form-control manual-input" placeholder="Enter title"></td>
+              <td><input type="text" class="form-control" placeholder="Enter weight"></td>
+              <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
+              <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price" step="0.01"></td>
+              <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price" step="0.01"></td>
+          `;
+      } else {
+          row.innerHTML = `
+              <td>${itemCount}</td>
+              <td>${product.name}</td>
+              <td data-weight="1">1 kg</td>
+              <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
+              <td data-original-price="${product.mrp}">${product.mrp}</td>
+              <td><input type="number" class="form-control price-input" value="${product.price}" min="0" step="0.01"></td>
+          `;
+      }
+      
+      itemTable.appendChild(row);
+      setupRowEventListeners(row);
+  }
+
+  // Function to setup event listeners for a row
+  function setupRowEventListeners(row) {
+      const quantityInput = row.querySelector(".quantity-input");
+      const priceInput = row.querySelector(".price-input");
+      let basePrice = parseFloat(priceInput.value) || 0;
+
+      function updateTotalPrice() {
+          const quantity = parseFloat(quantityInput.value) || 1;
+          if (document.activeElement !== priceInput) {
+              const totalPrice = basePrice * quantity;
+              priceInput.value = totalPrice.toFixed(2);
+          } else {
+              basePrice = parseFloat(priceInput.value) || 0;
+          }
+          calculateTotals();
+      }
+
+      priceInput.addEventListener("input", function() {
+          basePrice = parseFloat(this.value) || 0;
+          updateTotalPrice();
+      });
+      
+      quantityInput.addEventListener("input", updateTotalPrice);
+
+      // Add Enter key navigation for manual inputs
+      const inputs = row.querySelectorAll("input");
+      inputs.forEach((input, index) => {
+          input.addEventListener("keydown", (event) => {
+              if (event.key === "Enter") {
+                  event.preventDefault();
+                  if (index < inputs.length - 1) {
+                      inputs[index + 1].focus();
+                  } else {
+                      input.blur();
+                  }
+              }
+          });
+      });
+  }
+
+  // Manual Add Item button click handler
+  manualAddItemButton.addEventListener("click", () => {
+      addItemToTable(null, true);
+  });
+
+  // Scanner functions
+  async function startScanning() {
+      try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          video.srcObject = stream;
+          setInterval(captureFrame, 500);
+      } catch (error) {
+          console.error("Error accessing camera:", error);
+      }
+  }
+
+  function captureFrame() {
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL('image/png');
+      socket.send(JSON.stringify({ image: imageData }));
+  }
+
+  function clearData() {
+      barcodeList.innerHTML = '';
+  }
+
+  // Initialize calculations
+  calculateTotals();
+</script>
+<script>
+  const paymentDoneButton = document.getElementById('paymentDone');
+  const checkoutButton = document.getElementById('checkout');
+  const suspendButton = document.querySelector('.btn.btn-danger');
+  const customerNameInput = document.getElementById('customerName');
+  const customerEmailInput = document.getElementById('customerEmail');
+  const customerPhoneInput = document.getElementById('customerPhone');
     
-      // Calculate totals on page load
-      calculateTotals();
-    </script>
+  // Payment Done: Enable Checkout button
+  paymentDoneButton.addEventListener('click', () => {
+    checkoutButton.classList.remove('disabled');
+  });
+    
+  // Reset all fields when Checkout or Suspend is clicked
+  function resetBillingPage() {
+    itemTable.innerHTML = "";
+    customerNameInput.value = "";
+    customerEmailInput.value = "";
+    customerPhoneInput.value = "";
+    checkoutButton.classList.add('disabled');
+    window.location.reload();
+  }
+    
+  // Clear data and show new billing page when "Checkout" is clicked
+  checkoutButton.addEventListener('click', resetBillingPage);
+    
+  // Clear data and show new billing page when "Suspend" is clicked
+  suspendButton.addEventListener('click', resetBillingPage);
+    
+  // User Dropdown Logic
+  const userIcon = document.getElementById('userIcon');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+    
+  userIcon.addEventListener('click', () => {
+    dropdownMenu.style.display =
+      dropdownMenu.style.display === 'block' ? 'none' : 'block';
+  });
+    
+  window.addEventListener('click', (event) => {
+    if (!event.target.matches('#userIcon')) {
+      dropdownMenu.style.display = 'none';
+    }
+  });
+    
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  const itemTableRows = itemTable.getElementsByTagName('tr');
+    
+  searchInput.addEventListener('input', function() {
+    const searchQuery = searchInput.value.toLowerCase();
+    Array.from(itemTableRows).forEach(row => {
+      const cells = row.getElementsByTagName('td');
+      const itemName = cells[1]?.textContent.toLowerCase();
+      if (itemName && itemName.includes(searchQuery)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+    
+  // Initial setup: Attach event listeners to existing rows
+  Array.from(itemTable.rows).forEach((row) => {
+    const quantityInput = row.querySelector(".quantity-input");
+    if (quantityInput) {
+      quantityInput.addEventListener("input", calculateTotals);
+    }
+  });
+    
+  // Calculate totals on page load
+  calculateTotals();
+</script>
   
   
 </body>

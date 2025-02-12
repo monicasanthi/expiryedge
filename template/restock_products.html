@@ -154,9 +154,9 @@
                 <tbody>
                     {% for product in to_be_restocked %}
                     <tr>
-                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.name }}</td>
                         <td>{{ product.product_id }}</td>
-                        <td>₹{{ product.price }}</td>
+                        <td>₹{{ product.mrp }}</td>
                         <td>{{ product.quantity }}</td>
                     </tr>
                     {% endfor %}
@@ -180,9 +180,9 @@
                 <tbody>
                     {% for product in not_to_be_restocked %}
                     <tr>
-                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.name }}</td>
                         <td>{{ product.product_id }}</td>
-                        <td>₹{{ product.price }}</td>
+                        <td>₹{{ product.mrp }}</td>
                         <td>{{ product.quantity }}</td>
                     </tr>
                     {% endfor %}

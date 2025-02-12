@@ -11,31 +11,8 @@ import json
 from django.http import JsonResponse
 from pyzbar.pyzbar import decode
 from django.views.decorators.csrf import csrf_exempt
-
-def scanner_page(request):
-    return render(request, 'scanner.html')
-
-
-@csrf_exempt
-def barcode_scanner(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        image_data = data.get('image')
-
-        if image_data:
-            # Convert base64 image to OpenCV format
-            encoded_data = image_data.split(',')[1]
-            nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-            # Decode barcode
-            barcodes = decode(img)
-            for barcode in barcodes:
-                barcode_data = barcode.data.decode('utf-8')
-                return JsonResponse({'barcode': barcode_data})
-
-    return JsonResponse({'barcode': None})
-
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 
 # Create your views here.
 def index(request):
@@ -82,30 +59,68 @@ def stock_maintenance(request):
     return render(request,'stock_maintenance.html')
 
 def restock_products(request):
+    # # Convert 'quantity' to integer for correct filtering
+    # products = productdetails.objects.annotate(
+    #     quantity_int=Cast('quantity', IntegerField())
+    # )
+
     # Fetch products with quantity less than 5
-    to_be_restocked = Product.objects.filter(quantity__lt=5).values('product_name', 'product_id', 'mrp', 'quantity')
-    
+    to_be_restocked = productdetails.objects.annotate(
+        quantity_int=Cast('quantity', IntegerField())
+    ).filter(quantity_int__lt=5).values('name', 'product_id', 'mrp', 'quantity')    
     # Fetch products with quantity greater than 15
-    not_to_be_restocked = Product.objects.filter(quantity__gt=15).values('product_name', 'product_id', 'mrp', 'quantity')
-    
+    not_to_be_restocked = productdetails.objects.annotate(
+        quantity_int=Cast('quantity', IntegerField())
+    ).filter(quantity_int__gt=15).values('name', 'product_id', 'mrp', 'quantity')    
     context = {
         'to_be_restocked': to_be_restocked,
         'not_to_be_restocked': not_to_be_restocked,
     }
-    
-    return render(request, 'restock_products.html', context)
-def billing(request):
-    if request.method=="POST":
-        name = request.POST["name"]
-        email = request.POST["email"]
-        phoneno = request.POST['phone']
-        transactionid = request.POST['transactionid']
-        
 
-        productdetails(name=name,email=email,phone=phoneno,transactionid=transactionid).save()
-        messages.success(request, 'Details stored successfully.')
-        return redirect('/billing/')
-    return render(request,'billing.html')
+    return render(request, 'restock_products.html', context)
+
+@csrf_exempt
+def billing(request):
+    if request.method == "POST":
+        try:
+            product_id = request.POST.get('product_id')
+            if not product_id:
+                # Try to get from JSON body in case of fetch API
+                data = json.loads(request.body)
+                product_id = data.get('product_id')
+
+            if product_id:
+                # Get last 6 digits if product_id is longer
+                product_id = product_id[-6:]
+                try:
+                    product = productdetails.objects.get(product_id=product_id)
+                    return JsonResponse({
+                        'success': True,
+                        'product': {
+                            'name': product.name,
+                            'quantity': product.quantity,
+                            'mrp': product.mrp,
+                            'price': product.price,
+                            'expiry_date': product.expiry_date
+                        }
+                    })
+                except productdetails.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Product not found'
+                    })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No product ID provided'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return render(request, 'billing.html')
 
 def product_summary(request):
     products = productdetails.objects.all()
@@ -237,3 +252,23 @@ def report_issue(request):
 
 def terms_of_service(request):
     return render(request, 'terms_of_service.html')
+
+@csrf_exempt
+def barcode_scanner(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        image_data = data.get('image')
+
+        if image_data:
+            # Convert base64 image to OpenCV format
+            encoded_data = image_data.split(',')[1]
+            nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+            # Decode barcode
+            barcodes = decode(img)
+            for barcode in barcodes:
+                barcode_data = barcode.data.decode('utf-8')
+                return JsonResponse({'barcode': barcode_data})
+
+    return JsonResponse({'barcode': None})
