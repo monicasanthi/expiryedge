@@ -272,7 +272,7 @@
             <th>Price (₹)</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="cart-body">
           
         </tbody>
       </table>
@@ -483,6 +483,7 @@
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price" step="0.01"></td>
               <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price" step="0.01"></td>
+              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td> <!-- Cancel Button -->
           `;
       } else {
           row.innerHTML = `
@@ -492,6 +493,7 @@
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td data-original-price="${product.mrp}">${product.mrp}</td>
               <td><input type="number" class="form-control price-input" value="${product.price}" min="0" step="0.01"></td>
+              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td> <!-- Cancel Button -->
           `;
       }
       
@@ -597,7 +599,14 @@
     
   // Clear data and show new billing page when "Suspend" is clicked
   suspendButton.addEventListener('click', resetBillingPage);
-    
+
+  document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("cancel-item")) {
+        event.target.closest("tr").remove(); // Remove the selected row
+        calculateTotals(); // Recalculate totals after deletion
+    }
+  });
+
   // User Dropdown Logic
   const userIcon = document.getElementById('userIcon');
   const dropdownMenu = document.getElementById('dropdownMenu');
