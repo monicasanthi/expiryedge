@@ -17,7 +17,7 @@ urlpatterns=[
     path('stock_m/',views.stock_maintenance),
     path('r_s/',views.restock_products),
 
-    path('settings/',views.settings),
+    path('settings/',views.user_settings),
     path('u_profile/',views.update_profile),
     path('c_pass/',views.change_password),
     path('faq/',views.faq),

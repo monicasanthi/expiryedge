@@ -3,16 +3,22 @@ from django.contrib import messages
 from .models import *
 from django.utils.timezone import now
 from datetime import datetime, timedelta
-
-import cv2
-import numpy as np
-import base64
-import json
+from django.core.mail import send_mail, EmailMessage
 from django.http import JsonResponse
 from pyzbar.pyzbar import decode
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import Table, TableStyle
+import os
+from django.conf import settings
+import cv2
+import numpy as np
+import base64
+import json
 
 # Create your views here.
 def index(request):
@@ -217,7 +223,7 @@ def user_login(request):
         return redirect('/user_signin/')
     return render(request,'sign_in.html')
 
-def settings(request):
+def user_settings(request):
     return render(request, 'settings.html')
 
 def update_profile(request):
@@ -280,8 +286,9 @@ def save_billing(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            print("Received data:", data)  # Debug print
             
-            # Generate a unique transaction ID (you can modify this format)
+            # Generate a unique transaction ID
             transaction_id = f"BILL-{datetime.now().strftime('%Y%m%d%H%M%S')}"
             
             # Save billing page details
@@ -295,20 +302,134 @@ def save_billing(request):
             
             # Save each product in the billing
             for item in data['items']:
+                print("Processing item:", item)  # Debug print
                 billing_product.objects.create(
                     item=str(item['index']),
-                    title=item['name'],
+                    title=item['name'],  
                     weight=item['weight'],
                     quantity=item['quantity'],
-                    original_price=item['originalPrice'],
+                    original_price=item['originalPrice'],  
                     price=item['price'],
                     total_item=len(data['items']),
                     sub_total=data['summary']['subtotal'],
                     total_tax=data['summary']['tax'],
                     total=data['summary']['total'],
-                    payment_method='Cash',  # You can modify this as needed
+                    payment_method='Cash',
                     billing_id=transaction_id
                 )
+
+            # Create PDF
+            pdf_path = os.path.join(settings.MEDIA_ROOT, f'bill_{transaction_id}.pdf')
+            os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+            
+            # Generate PDF
+            c = canvas.Canvas(pdf_path, pagesize=letter)
+            width, height = letter
+            
+            # Add header
+            c.setFont("Helvetica-Bold", 24)
+            c.drawString(50, height - 50, "Invoice")
+            c.setFont("Helvetica", 12)
+            c.drawString(50, height - 80, f"Transaction ID: {transaction_id}")
+            c.drawString(50, height - 100, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # Add customer details
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(50, height - 140, "Customer Details")
+            c.setFont("Helvetica", 12)
+            c.drawString(50, height - 160, f"Name: {data['customer']['name']}")
+            c.drawString(50, height - 180, f"Email: {data['customer']['email']}")
+            c.drawString(50, height - 200, f"Phone: {data['customer']['phone']}")
+            c.drawString(50, height - 220, f"Address: {data['customer']['address']}")
+            
+            # Create table data
+            table_data = [['#', 'Item', 'Weight', 'Quantity', 'Price', 'Total']]
+            for item in data['items']:
+                table_data.append([
+                    str(item['index']),
+                    item['name'],
+                    item['weight'],
+                    item['quantity'],
+                    f"₹{item['originalPrice']}",
+                    f"₹{item['price']}"
+                ])
+            
+            # Create table
+            table = Table(table_data, colWidths=[30, 200, 70, 70, 70, 70])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            
+            # Draw table
+            table.wrapOn(c, width, height)
+            table.drawOn(c, 50, height - 400)
+            
+            # Add summary
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(400, height - 450, f"Subtotal: ₹{data['summary']['subtotal']}")
+            c.drawString(400, height - 470, f"Tax: ₹{data['summary']['tax']}")
+            c.drawString(400, height - 490, f"Total: ₹{data['summary']['total']}")
+            
+            c.save()
+            
+            # Prepare email content
+            email_content = f"""
+            Dear {data['customer']['name']},
+
+            Thank you for your purchase! Here are your billing details:
+
+            Transaction ID: {transaction_id}
+            Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+            Items Purchased:
+            {'='*50}
+            """
+            
+            for item in data['items']:
+                email_content += f"""
+                {item['name']}
+                Quantity: {item['quantity']}
+                Price: ₹{item['price']}
+                {'='*50}
+                """
+            
+            email_content += f"""
+            Summary:
+            Subtotal: ₹{data['summary']['subtotal']}
+            Tax: ₹{data['summary']['tax']}
+            Total: ₹{data['summary']['total']}
+
+            Please find your invoice attached to this email.
+
+            Thank you for shopping with us!
+            """
+            
+            # Send email with PDF attachment
+            email = EmailMessage(
+                subject=f'Your Invoice - {transaction_id}',
+                body=email_content,
+                from_email='monicasanthi04@gmail.com',
+                to=[data['customer']['email']]
+            )
+            
+            # Attach PDF
+            with open(pdf_path, 'rb') as f:
+                email.attach(f'invoice_{transaction_id}.pdf', f.read(), 'application/pdf')
+            
+            email.send(fail_silently=False)
+            
+            # Clean up PDF file
+            os.remove(pdf_path)
             
             return JsonResponse({
                 'success': True,

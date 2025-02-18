@@ -307,7 +307,8 @@
       <!-- Payment and Action Buttons -->
       <button id="paymentDone" class="btn btn-success mt-3">Submit</button>
       <!-- <button id="checkout" class="btn btn-primary disabled mt-3">Checkout</button> -->
-      <button class="btn btn-secondary mt-3">Hold</button>
+      <!-- <button class="btn btn-secondary mt-3">Hold</button>
+      <button class="btn btn-primary mt-3">Revert</button> -->
       <button class="btn btn-danger mt-3">Suspend</button>
     </div>
 
@@ -380,6 +381,8 @@
   const manualAddItemButton = document.getElementById("manualAddItemButton");
   const paymentDoneButton = document.getElementById('paymentDone');
   // const checkoutButton = document.getElementById('checkout');
+  // Track scanned product IDs
+  const scannedProducts = new Set();
 
   // Function to get CSRF token
   function getCookie(name) {
@@ -472,6 +475,15 @@
   
   // Function to add item to table
   function addItemToTable(product, isManual = false) {
+      if (!isManual && product) {
+          // Check for duplicate product
+          if (scannedProducts.has(product.name)) {
+              alert('This product is already in the cart!');
+              return false;
+          }
+          scannedProducts.add(product.name);
+      }
+
       const itemCount = itemTable.rows.length + 1;
       const row = document.createElement("tr");
       
@@ -483,7 +495,7 @@
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price" step="0.01"></td>
               <td><input type="number" class="form-control manual-input price-input" placeholder="Enter price" step="0.01"></td>
-              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td> <!-- Cancel Button -->
+              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td>
           `;
       } else {
           row.innerHTML = `
@@ -493,12 +505,13 @@
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td data-original-price="${product.mrp}">${product.mrp}</td>
               <td><input type="number" class="form-control price-input" value="${product.price}" min="0" step="0.01"></td>
-              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td> <!-- Cancel Button -->
+              <td><button class="btn btn-sm btn-danger cancel-item">Cancel</button></td>
           `;
       }
       
       itemTable.appendChild(row);
       setupRowEventListeners(row);
+      return true;
   }
 
   // Function to setup event listeners for a row
@@ -598,11 +611,17 @@
   // checkoutButton.addEventListener('click', resetBillingPage);
     
   // Clear data and show new billing page when "Suspend" is clicked
-  suspendButton.addEventListener('click', resetBillingPage);
+  suspendButton.addEventListener('click', () => {
+      resetBillingPage();
+      scannedProducts.clear(); // Clear the scanned products set
+  });
 
   document.addEventListener("click", function (event) {
     if (event.target.classList.contains("cancel-item")) {
-        event.target.closest("tr").remove(); // Remove the selected row
+        const row = event.target.closest("tr");
+        const productName = row.querySelector("td:nth-child(2)").textContent;
+        scannedProducts.delete(productName); // Remove from scanned products set
+        row.remove(); // Remove the selected row
         calculateTotals(); // Recalculate totals after deletion
     }
   });
@@ -659,13 +678,32 @@
     
     for (let i = 0; i < rows.length; i++) {
       const cells = rows[i].getElementsByTagName('td');
+      const nameCell = cells[1];
+      const weightCell = cells[2];
+      const originalPriceCell = cells[4];
+      
+      // Get name - could be in input or text content
+      const name = nameCell.querySelector('input') ? 
+                  nameCell.querySelector('input').value : 
+                  nameCell.textContent;
+      
+      // Get weight - could be in input or text content
+      const weight = weightCell.querySelector('input') ? 
+                    weightCell.querySelector('input').value : 
+                    weightCell.textContent;
+      
+      // Get original price - could be in input or text content
+      const originalPrice = originalPriceCell.querySelector('input') ? 
+                          originalPriceCell.querySelector('input').value : 
+                          originalPriceCell.textContent.replace('₹', '').trim();
+      
       items.push({
         index: i + 1,
-        name: cells[1].textContent,
-        weight: cells[2].textContent,
-        quantity: cells[3].textContent,
-        originalPrice: cells[4].textContent.replace('₹', '').trim(),
-        price: cells[5].textContent.replace('₹', '').trim()
+        name: name,
+        weight: weight,
+        quantity: cells[3].querySelector('input').value,
+        originalPrice: originalPrice,
+        price: cells[5].querySelector('input').value
       });
     }
     
