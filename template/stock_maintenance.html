@@ -246,7 +246,7 @@
           This section displays the total number of products currently in your stock. It gives you an overview of the entire inventory at a glance.
         </div>
         <div class="card-details">
-          <h3><strong>500</strong></h3>
+          <h3><strong>{{ counts.totalproduct }}</strong></h3>
         </div>
         <a href="/p_list/"><button class="view-btn">View</button></a>
       </div>
@@ -259,7 +259,7 @@
             <div class="card-title">Good Products</div>
             <div class="card-description"> These are the products that are in good condition, ready for sale or use.</div>
             <div class="card-details">
-              <h3><strong>450</strong></h3>
+              <h3><strong>{{ counts.good_product_count  }}</strong></h3>
             </div>
           </div>
       
@@ -268,7 +268,7 @@
             <div class="card-title">Expiring Soon Products</div>
             <div class="card-description">These products are nearing their expiry date and should be prioritized for sale or use.</div>
             <div class="card-details">
-              <h3><strong>30</strong></h3>
+              <h3><strong>{{ counts.expiry_soon_count }}</strong></h3>
             </div>
           </div>
         </div>
@@ -282,7 +282,7 @@
           This section lists all expired products. These items are no longer available for sale and need to be removed or restocked.
         </div>
         <div class="card-details">
-          <h3><strong>20</strong></h3>
+          <h3><strong>{{ counts.expired_product_count }}</strong></h3>
         </div>
         <a href="/expired_pro/"><button class="view-btn">View</button></a>
       </div>
@@ -292,7 +292,7 @@
           Track the products that are running low and need to be restocked. Ensuring you never run out of important items.
         </div>
         <div class="card-details">
-          <h3><strong>40</strong></h3>
+          <h3><strong>{{ counts.restock_pro }}</strong></h3>
         </div>
         <a href="/r_s/"><button class="view-btn">View</button></a>
       </div>

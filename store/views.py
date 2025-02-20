@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from datetime import datetime, timedelta
 from django.contrib import messages
 from .models import *
 from django.utils.timezone import now
@@ -13,6 +14,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from django.db.models import Sum
 import os
 from django.conf import settings
 import cv2
@@ -62,19 +64,42 @@ def product_list(request):
 def owner_dashboard(request):
     return render(request,'owner_dashboard.html')
 
+
 def stock_maintenance(request):
-    return render(request,'stock_maintenance.html')
+    today = datetime.today().date()
+    seven_days_later = today + timedelta(days=7)
+
+    # Fetch products based on expiry conditions
+    good_products = productdetails.objects.filter(expiry_date__gt=seven_days_later)
+    expiry_soon_products = productdetails.objects.filter(expiry_date__range=(today, seven_days_later))
+    expired_products = productdetails.objects.filter(expiry_date__lt=today)
+    total_product = productdetails.objects.all()
+    restocked_product = productdetails.objects.annotate(
+        quantity_int=Cast('quantity', IntegerField())
+    ).filter(quantity_int__lt=15).values('name', 'product_id', 'mrp', 'quantity') 
+
+    # Count of each category
+    counts = {
+        'good_product_count': good_products.count(),
+        'expiry_soon_count': expiry_soon_products.count(),
+        'expired_product_count': expired_products.count(),
+        'totalproduct' : total_product.count(),
+        'restock_pro' : restocked_product.count()
+    }
+    print(counts["restock_pro"])
+
+    return render(request, 'stock_maintenance.html', {
+        'counts': counts 
+
+    })
+
 
 def restock_products(request):
-    # # Convert 'quantity' to integer for correct filtering
-    # products = productdetails.objects.annotate(
-    #     quantity_int=Cast('quantity', IntegerField())
-    # )
 
     # Fetch products with quantity less than 5
     to_be_restocked = productdetails.objects.annotate(
         quantity_int=Cast('quantity', IntegerField())
-    ).filter(quantity_int__lt=5).values('name', 'product_id', 'mrp', 'quantity')    
+    ).filter(quantity_int__lt=15).values('name', 'product_id', 'mrp', 'quantity')    
     # Fetch products with quantity greater than 15
     not_to_be_restocked = productdetails.objects.annotate(
         quantity_int=Cast('quantity', IntegerField())
@@ -105,6 +130,7 @@ def billing(request):
                         'success': True,
                         'product': {
                             'name': product.name,
+                            'product_id': product.product_id,  # Add product_id to response
                             'quantity': product.quantity,
                             'mrp': product.mrp,
                             'price': product.price,
@@ -305,6 +331,7 @@ def save_billing(request):
                 print("Processing item:", item)  # Debug print
                 billing_product.objects.create(
                     item=str(item['index']),
+                    pro_id=item['product_id'] or '',  
                     title=item['name'],  
                     weight=item['weight'],
                     quantity=item['quantity'],
@@ -415,18 +442,23 @@ def save_billing(request):
             """
             
             # Send email with PDF attachment
-            email = EmailMessage(
-                subject=f'Your Invoice - {transaction_id}',
-                body=email_content,
-                from_email='monicasanthi04@gmail.com',
-                to=[data['customer']['email']]
-            )
-            
-            # Attach PDF
-            with open(pdf_path, 'rb') as f:
-                email.attach(f'invoice_{transaction_id}.pdf', f.read(), 'application/pdf')
-            
-            email.send(fail_silently=False)
+            try:
+                email = EmailMessage(
+                    subject=f'Your Invoice - {transaction_id}',
+                    body=email_content,
+                    from_email='monicasanthi04@gmail.com',
+                    to=[data['customer']['email']]
+                )
+                
+                # Attach PDF
+                with open(pdf_path, 'rb') as f:
+                    email.attach(f'invoice_{transaction_id}.pdf', f.read(), 'application/pdf')
+                
+                email.send(fail_silently=True)
+                email_status = "Email sent successfully"
+            except Exception as email_error:
+                email_status = f"Email could not be sent: {str(email_error)}"
+                print(f"Email error: {email_error}")  # Log the error
             
             # Clean up PDF file
             os.remove(pdf_path)
@@ -434,7 +466,8 @@ def save_billing(request):
             return JsonResponse({
                 'success': True,
                 'message': 'Billing details saved successfully',
-                'transaction_id': transaction_id
+                'transaction_id': transaction_id,
+                'email_status': email_status
             })
             
         except Exception as e:

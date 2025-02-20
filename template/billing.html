@@ -252,14 +252,6 @@
         id="searchInput"
       />
 
-      <!-- Quick Options Section
-      <div class="quick-options">
-        <h4>Quick Options</h4>
-        <button class="btn btn-primary">Item 1</button>
-        <button class="btn btn-primary">Item 2</button>
-        <button class="btn btn-primary">Item 3</button>
-      </div> -->
-
       <!-- Item Details Table -->
       <table class="table mt-4" id="itemTable">
         <thead>
@@ -380,7 +372,6 @@
   const barcodeList = document.getElementById('barcode-list');
   const manualAddItemButton = document.getElementById("manualAddItemButton");
   const paymentDoneButton = document.getElementById('paymentDone');
-  // const checkoutButton = document.getElementById('checkout');
   // Track scanned product IDs
   const scannedProducts = new Set();
 
@@ -398,6 +389,35 @@
           }
       }
       return cookieValue;
+  }
+
+  // Function to validate customer details
+  function validateCustomerDetails() {
+    const customerName = document.getElementById('customerName').value.trim();
+    const customerEmail = document.getElementById('customerEmail').value.trim();
+    const customerPhone = document.getElementById('customerPhone').value.trim();
+    const customerAddress = document.getElementById('customerAddress').value.trim();
+
+    if (!customerName || !customerEmail || !customerPhone || !customerAddress) {
+      alert('All customer details fields are required!');
+      return false;
+    }
+
+    // Basic email validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(customerEmail)) {
+      alert('Please enter a valid email address!');
+      return false;
+    }
+
+    // Basic phone validation (at least 10 digits)
+    const phonePattern = /^\d{10,}$/;
+    if (!phonePattern.test(customerPhone)) {
+      alert('Please enter a valid phone number (at least 10 digits)!');
+      return false;
+    }
+
+    return true;
   }
 
   // Calculate totals function
@@ -420,9 +440,12 @@
       // Update summary section
       document.querySelector("#totalItems").textContent = totalItems;
       document.querySelector("#subtotal").textContent = `₹${subtotal.toFixed(2)}`;
-      const tax = subtotal * 0.05; // Assuming 5% tax
+      const tax = subtotal * 0.02; // Assuming 2% tax
       document.querySelector("#totalTax").textContent = `₹${tax.toFixed(2)}`;
       document.querySelector("#total").textContent = `₹${(subtotal + tax).toFixed(2)}`;
+      document.querySelector("#paymentMethod").textContent = paymentMethod;
+      
+
   }
 
   // WebSocket setup for barcode scanning
@@ -490,7 +513,7 @@
       if (isManual) {
           row.innerHTML = `
               <td>${itemCount}</td>
-              <td><input type="text" class="form-control manual-input" placeholder="Enter title"></td>
+              <td data-product-id="">${product ? product.name : '<input type="text" class="form-control manual-input" placeholder="Enter title">'}</td>
               <td><input type="text" class="form-control" placeholder="Enter weight"></td>
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td><input type="number" class="form-control manual-input original-price-input" placeholder="Enter original price" step="0.01"></td>
@@ -500,7 +523,7 @@
       } else {
           row.innerHTML = `
               <td>${itemCount}</td>
-              <td>${product.name}</td>
+              <td data-product-id="${product.product_id || ''}">${product.name}</td>
               <td data-weight="1">${product.weight}</td>
               <td><input type="number" class="form-control quantity-input" value="1" min="1"></td>
               <td data-original-price="${product.mrp}">${product.mrp}</td>
@@ -670,86 +693,101 @@
   calculateTotals();
   
   // Payment Done: Save billing details
-  paymentDoneButton.addEventListener('click', () => {
+  paymentDoneButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!validateCustomerDetails()) {
+      return;
+    }
+
     // Get all items from the table
     const itemTable = document.getElementById('itemTable');
     const rows = itemTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-    const items = [];
     
+    if (rows.length === 0) {
+      alert('Please add at least one item to the bill');
+      return;
+    }
+
+    const items = [];
     for (let i = 0; i < rows.length; i++) {
-      const cells = rows[i].getElementsByTagName('td');
+      const row = rows[i];
+      const cells = row.getElementsByTagName('td');
+      const priceInput = cells[5].querySelector('input.price-input');
       const nameCell = cells[1];
-      const weightCell = cells[2];
-      const originalPriceCell = cells[4];
+      const productId = nameCell.dataset.productId || '';  // Get product ID if available
       
-      // Get name - could be in input or text content
+      if (!priceInput || !priceInput.value) {
+        alert('Please enter a valid price for all items');
+        return;
+      }
+
       const name = nameCell.querySelector('input') ? 
-                  nameCell.querySelector('input').value : 
-                  nameCell.textContent;
-      
-      // Get weight - could be in input or text content
-      const weight = weightCell.querySelector('input') ? 
-                    weightCell.querySelector('input').value : 
-                    weightCell.textContent;
-      
-      // Get original price - could be in input or text content
-      const originalPrice = originalPriceCell.querySelector('input') ? 
-                          originalPriceCell.querySelector('input').value : 
-                          originalPriceCell.textContent.replace('₹', '').trim();
-      
+                   nameCell.querySelector('input').value : 
+                   nameCell.textContent.trim();
+
+      if (!name) {
+        alert('Please enter a title for all items');
+        return;
+      }
+
       items.push({
         index: i + 1,
+        product_id: productId,
         name: name,
-        weight: weight,
+        weight: cells[2].querySelector('input') ? cells[2].querySelector('input').value : cells[2].textContent.trim(),
         quantity: cells[3].querySelector('input').value,
-        originalPrice: originalPrice,
-        price: cells[5].querySelector('input').value
+        originalPrice: parseFloat(cells[4].querySelector('input') ? cells[4].querySelector('input').value : cells[4].textContent.replace('₹', '')) || 0,
+        price: parseFloat(priceInput.value)
       });
     }
-    
-    // Get customer details
-    const customerData = {
-      name: document.getElementById('customerName').value,
-      email: document.getElementById('customerEmail').value,
-      phone: document.getElementById('customerPhone').value,
-      address: document.getElementById('customerAddress').value
-    };
-    
-    // Get summary details
-    const summaryData = {
-      subtotal: document.getElementById('subtotal').textContent.replace('₹', '').trim(),
-      tax: document.getElementById('totalTax').textContent.replace('₹', '').trim(),
-      total: document.getElementById('total').textContent.replace('₹', '').trim()
-    };
-    
-    // Prepare data for submission
-    const billingData = {
-      customer: customerData,
+
+    const data = {
+      customer: {
+        name: document.getElementById('customerName').value,
+        email: document.getElementById('customerEmail').value,
+        phone: document.getElementById('customerPhone').value,
+        address: document.getElementById('customerAddress').value
+      },
       items: items,
-      summary: summaryData
+      summary: {
+        subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₹', '')),
+        tax: parseFloat(document.getElementById('totalTax').textContent.replace('₹', '')),
+        total: parseFloat(document.getElementById('total').textContent.replace('₹', ''))
+      }
     };
-    
-    // Send data to server
+
+    // Disable the submit button to prevent double submission
+    paymentDoneButton.disabled = true;
+    paymentDoneButton.textContent = 'Processing...';
+
     fetch('/save_billing/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken')
       },
-      body: JSON.stringify(billingData)
+      body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('Billing saved successfully!\nTransaction ID: ' + data.transaction_id);
+        let message = `Bill saved successfully!\nTransaction ID: ${data.transaction_id}`;
+        if (data.email_status) {
+          message += `\n${data.email_status}`;
+        }
+        alert(message);
         resetBillingPage();
       } else {
-        alert('Error saving billing: ' + data.error);
+        alert('Error saving bill: ' + data.error);
       }
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('Error saving billing details');
+      alert('Error saving bill: ' + error);
+    })
+    .finally(() => {
+      // Re-enable the submit button
+      paymentDoneButton.disabled = false;
+      paymentDoneButton.textContent = 'Submit';
     });
   });
 </script>

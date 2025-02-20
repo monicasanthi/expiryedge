@@ -39,6 +39,7 @@ class billing_page(models.Model):
     # email = models.EmailField()
 
 class billing_product(models.Model):
+    pro_id = models.CharField(max_length=255)
     item= models.CharField(max_length=255)
     title= models.CharField(max_length=255)
     weight= models.CharField(max_length=255)
