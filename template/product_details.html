@@ -34,8 +34,9 @@
 
 /* Background Styling */
 body {
-    background: url("{% static 'images/hero.png' %}") no-repeat center center fixed;
-    background-size: cover;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
 }
 .background-overlay {
     position: fixed;
@@ -45,32 +46,40 @@ body {
     height: 100%;
     background-image: url("{% static 'images/hero.png' %}"); /* Replace with your image */
     background-size: cover;
-    background-position: center;
     filter: blur(5px); /* Light blur effect */
     z-index: -1;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Navbar Styles */
-.navbar {
+.header {
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.5); /* Slight transparent black background */
+    justify-content: space-between;
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
     color: white;
+    flex-wrap: wrap;
 }
-
-.nav-icon {
+.header-title {
+    font-size: 30px;
+    color: white;
+    font-weight: bold;
+    margin-left: 15px;
+}
+.icons {
+    display: flex;
+    align-items: center;
+    position: relative;
+    gap: 20px;
+}
+.header .icons .icon {
+    cursor: pointer;
     font-size: 24px;
     color: white;
-    cursor: pointer;
-    margin-right: 15px;
-    margin-left: 10px;
 }
-
-.navbar-title {
-    text-align: center;
-}
-
 .title {
     font-size: 25px;
     font-weight: bold;
@@ -80,14 +89,29 @@ body {
     font-size: 15px;
 }
 
+.left-section {
+    display: flex;
+    align-items: center;
+}
+/* Logo Container */
+.left-section {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 50px; /* Adjust size as needed */
+    height: auto;
+}
+
 /* Dropdown Profile */
-.profile-container {
+.dropdown-container {
     position: relative;
     display: inline-block;
 }
 
 /* Dropdown Menu */
-#dropdown-menu {
+.dropdown {
     display: none; /* Hidden by default */
     position: absolute;
     top: 50px; /* Position below the profile icon */
@@ -95,27 +119,35 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 5px;
     padding: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    min-width: 150px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 10;
-    text-align: left;
 }
 
-#dropdown-menu a {
+.dropdown a {
     color: white;
+    padding: 10px 15px;
     text-decoration: none;
     display: block;
-    padding: 8px 12px;
-    transition: background 0.3s;
 }
 
-#dropdown-menu a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+.dropdown a:hover {
+    background-color: #ddd;
+}
+.dropdown-arrow {
+    font-size: 14px;
+    color: white;
+    margin-right: 15px;
+    cursor: pointer;
 }
 
-/* Show dropdown on hover */
-.profile-container:hover #dropdown-menu {
-    display: block;
+/* Profile Container */
+.profile-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    display: inline-block;
 }
 
 /* Content Container */
@@ -186,24 +218,20 @@ button {
     <div class="background-overlay"></div>
 
     <!-- Header Section -->
-    <div class="navbar">
-        <!-- Back Arrow -->
-        <i class="fa-solid fa-arrow-left nav-icon" title="Back"></i>
-        
-        <!-- Title -->
-        <!-- <div class="navbar-title">
-            <div class="title">Get Started</div>
-            <div class="subtitle">With Expiry edge</div>
-        </div> -->
-
-        <!-- Right Side Icons -->
-        <div class="nav-icons">
-            <!-- Cart Icon -->
-            <i class="fa-solid fa-cart-shopping nav-icon" title="Cart"></i>
+    <div class="header">
+        <div class="left-section">
+            <img src="{% static 'images/logo.png' %}" alt="Company Logo" class="logo">
+            <h2 class="header-title">Product Details</h2>
+        </div>
+        <div class="icons">
+            <i class="fas fa-shopping-cart icon"></i>
             
             <!-- Profile Dropdown -->
-            <div class="profile-container">
-                <i id="profile-icon" class="fa-solid fa-user nav-icon" title="Profile"></i>
+            <div class="dropdown-container">
+                <i class="fas fa-user icon" id="userIcon"></i>
+                <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
+                <span class="profile-name">John Doe</span>
+
                 <div id="dropdown-menu" class="dropdown">
                     <a href="/">Home</a>
                     <a href="/s_d/">Dashboard</a>
@@ -217,7 +245,7 @@ button {
     <!-- Product Details Content -->
     <div class="content-container">
         <main class="content">
-            <h1>Product Details</h1>
+            <!-- <h1>Product Details</h1> -->
             <form method="POST" action="/p_d/">
                 {% csrf_token %}
                 <!-- Product Name -->
@@ -361,34 +389,28 @@ button {
         this.value = value.slice(-6);
     }
 });
+    // Toggle dropdown menu
+    const userIcon = document.getElementById('userIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    userIcon.addEventListener('click', () => {
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
 
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('#userIcon')) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+
+
+    document.getElementById("Product_id").addEventListener("input", function () {
+        let value = this.value;
+        if (value.length > 6) {
+            this.value = value.slice(-6);
+        }
+    });
 
 </script>
-    <script>
-        // Get the profile icon and dropdown menu
-        const profileIcon = document.getElementById('profile-icon');
-        const dropdownMenu = document.getElementById('dropdown-menu');
-
-        // Toggle dropdown visibility on profile icon click
-        profileIcon.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent the event from bubbling up to the document
-            dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // Close dropdown if clicked outside
-        document.addEventListener('click', (event) => {
-            if (!event.target.closest('.profile-container')) {
-                dropdownMenu.style.display = 'none';
-            }
-        });
-        document.getElementById("Product_id").addEventListener("input", function () {
-            let value = this.value;
-            if (value.length > 6) {
-                this.value = value.slice(-6);
-            }
-        });
-
-    </script>
         <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script> -->
 </body>
 </html>

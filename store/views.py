@@ -1,5 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from datetime import datetime, timedelta
+from django.db.models.functions import TruncMonth
+from django.db.models import Sum
 from django.contrib import messages
 from .models import *
 from django.utils.timezone import now
@@ -78,6 +80,31 @@ def stock_maintenance(request):
         quantity_int=Cast('quantity', IntegerField())
     ).filter(quantity_int__lt=15).values('name', 'product_id', 'mrp', 'quantity') 
 
+    # Get top 10 best-selling products dynamically
+    top_products = (
+        billing_product.objects
+        .values('pro_id', 'title')  
+        .annotate(total_sold=Sum('quantity'))  
+        .order_by('-total_sold')[:10]  # Get top 10
+    )
+
+    # Extract product names and quantities for Pie Chart
+    product_names = [item['title'] for item in top_products]
+    product_quantities = [item['total_sold'] for item in top_products]
+
+    # Monthly revenue data (Dynamic for Bar Chart)
+    monthly_revenue = (
+        billing_product.objects
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total_revenue=Sum('total'))
+        .order_by('month')
+    )
+
+    # Extract month names and revenue amounts
+    revenue_months = [item['month'].strftime('%B') for item in monthly_revenue]
+    revenue_amounts = [item['total_revenue'] for item in monthly_revenue]
+
     # Count of each category
     counts = {
         'good_product_count': good_products.count(),
@@ -86,14 +113,14 @@ def stock_maintenance(request):
         'totalproduct' : total_product.count(),
         'restock_pro' : restocked_product.count()
     }
-    print(counts["restock_pro"])
 
-    return render(request, 'stock_maintenance.html', {
-        'counts': counts 
-
+    return render(request, 'stock_maintenance.html', { 
+        'counts': counts,
+        'product_names': product_names,
+        'product_quantities': product_quantities,
+        'revenue_months': revenue_months,
+        'revenue_amounts': revenue_amounts
     })
-
-
 def restock_products(request):
 
     # Fetch products with quantity less than 5
@@ -253,7 +280,25 @@ def user_settings(request):
     return render(request, 'settings.html')
 
 def update_profile(request):
-    return render(request, 'update_profile.html')
+    staffid = request.session['id']
+ 
+    user = registration.objects.get(id=staffid)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        phonenumber = request.POST.get('phone_number')
+        address = request.POST.get('address')
+        email = request.POST.get('email')
+    
+        # Update fields
+        user.name = name
+        user.phonenumber = phonenumber
+        user.address = address
+        user.email = email
+        user.save()
+
+        messages.success(request, 'profile updated succcessfully.')
+    return render(request, 'update_profile.html', {'user': user})
  
 def change_password(request):
     return render(request, 'change_password.html')
@@ -309,6 +354,7 @@ def barcode_scanner(request):
 
 @csrf_exempt
 def save_billing(request):
+
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -341,9 +387,27 @@ def save_billing(request):
                     sub_total=data['summary']['subtotal'],
                     total_tax=data['summary']['tax'],
                     total=data['summary']['total'],
-                    payment_method='Cash',
-                    billing_id=transaction_id
+                    payment_method=data['summary']['payment_method'],
+                    billing_id=transaction_id,
+                    created_at=datetime.now()
                 )
+
+                # try:
+                #     quan = int(item['quantity'])  # Ensure quantity is an integer
+                #     print(type(quan))  
+                #     product = productdetails.objects.get(product_id=item['product_id'])
+                #     real_quan = product.quantity
+                #     # Directly update the product's quantity in the database
+                #     print(real_quan)
+                #     print(type(real_quan))
+                #     real_quan -= quan  # No need for `real_quan`
+                #     product.save()
+                # except productdetails.DoesNotExist:
+                #     print(f"Product with ID {item['product_id']} not found in productdetails.")
+                # except ValueError:
+                #     print(f"Invalid quantity value for product {item['product_id']}: {item['quantity']}")
+                # except Exception as stock_error:
+                #     print(f"Error updating stock: {stock_error}")
 
             # Create PDF
             pdf_path = os.path.join(settings.MEDIA_ROOT, f'bill_{transaction_id}.pdf')

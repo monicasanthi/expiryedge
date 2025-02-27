@@ -47,6 +47,8 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            color: white;
+            flex-wrap: wrap;
         }
         .nav-link{
             color: white;
@@ -55,19 +57,16 @@
             
         }
 
-        .header .nav {
-            display: flex;
-            align-items: center;
-        }
+        /* Header Title */
+    .header-title {
+        font-size: 30px;
+        color: white;
+        font-weight: bold;
+        margin-left: 15px;
+        margin-bottom: 0px;
+      }
 
-        .header .nav .back-arrow {
-            margin-right: 20px;
-            cursor: pointer;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .header .icons {
+        .icons {
             display: flex;
             align-items: center;
             position: relative;
@@ -76,10 +75,39 @@
 
         .header .icons .icon {
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 24px;
             color: white;
         }
 
+            .title {
+        font-size: 25px;
+        font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 15px;
+        }
+
+    .left-section {
+        display: flex;
+        align-items: center;
+        }
+
+        /* Logo Container */
+        .left-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 50px; /* Adjust size as needed */
+            height: auto;
+        }
+
+      .dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
         .dropdown {
             position: absolute;
             top: 50px;
@@ -87,7 +115,8 @@
             background-color: rgba(0, 0, 0, 0.8);
             min-width: 150px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1;
+            z-index: 10;
+            text-align: left;
             display: none;
         }
 
@@ -100,6 +129,12 @@
 
         .dropdown a:hover {
             background-color: #ddd;
+        }
+        .dropdown-arrow {
+            font-size: 14px;
+            color: white;
+            margin-right: 15px;
+            cursor: pointer;
         }
 
         /* Hero Section */
@@ -235,6 +270,7 @@
             text-align: center;
             padding: 20px;
             font-style: italic;
+            font-size: 26px;
         }
 
         /* Footer */
@@ -259,20 +295,25 @@
 
     <!-- Header/Navbar -->
     <div class="header">
-        <div class="nav">
-            <i class="fas fa-arrow-left back-arrow"></i>
+        <div class="left-section">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+            <h2 class="header-title">Let's get started</h2>
         </div>
+
         <nav class="ms-auto">
             <a href="/about/" class="nav-link">About</a>
         </nav>
+
         <div class="icons">
-            <!-- <i class="fas fa-shopping-cart icon"></i> -->
+            <i class="fas fa-shopping-cart icon"></i>
+
             <div class="dropdown-container">
                 <i class="fas fa-user icon" id="userIcon"></i>
-                <div class="dropdown" id="dropdownMenu">
+                <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
+                <span class="profile-name"> Santhi Prasad </span>
+                <div class="dropdown" id="dropdownMenu" style="margin-right: 10px;">
                     <a href="/">Home</a>
                     <a href="/welcome/">Dashboard</a>
-                    <!-- <a href="/settings/">Settings</a> -->
                     
                 </div>
             </div>

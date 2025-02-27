@@ -286,10 +286,10 @@
         <div class="payment-method">
           <label for="paymentMethod" class="form-label">Payment Method</label>
           <select id="paymentMethod" class="form-select">
-            <option>Cash</option>
-            <option>Card</option>
-            <option>UPI</option>
-            <option>Net Banking</option>
+            <option value="cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="upi">UPI</option>
+            <option value="net-banking">Net Banking</option>
           </select>
         </div>
 
@@ -443,7 +443,6 @@
       const tax = subtotal * 0.02; // Assuming 2% tax
       document.querySelector("#totalTax").textContent = `₹${tax.toFixed(2)}`;
       document.querySelector("#total").textContent = `₹${(subtotal + tax).toFixed(2)}`;
-      document.querySelector("#paymentMethod").textContent = paymentMethod;
       
 
   }
@@ -752,7 +751,8 @@
       summary: {
         subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₹', '')),
         tax: parseFloat(document.getElementById('totalTax').textContent.replace('₹', '')),
-        total: parseFloat(document.getElementById('total').textContent.replace('₹', ''))
+        total: parseFloat(document.getElementById('total').textContent.replace('₹', '')),
+        payment_method: document.getElementById('paymentMethod').value
       }
     };
 

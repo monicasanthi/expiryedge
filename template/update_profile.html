@@ -249,6 +249,11 @@
         
     </style>
 </head>
+<script>
+    {% for m in messages %}
+    alert('{{m}}');
+    {% endfor %}
+</script>
 <body>
     <div class="background-overlay"></div>
     <div class="header">
@@ -277,11 +282,10 @@
 
         <!-- Profile Details -->
         <div id="profile-details" class="profile-details">
-            <p><strong>Name:</strong> John Doe</p>
-            <p><strong>Id Number:</strong> 13</p>
-            <p><strong>Phone Number:</strong> 9876543210</p>
-            <p><strong>Address:</strong> chembarampakam, chennai</p>
-            <p><strong>Email:</strong> johndoe@example.com</p>
+            <p><strong>Name:</strong> {{ user.name }} </p>
+            <p><strong>Phone Number:</strong> {{ user.phonenumber }}</p>
+            <p><strong>Address:</strong> {{ user.address }}</p>
+            <p><strong>Email:</strong> {{ user.email }} </p>
              <div class="action-buttons">
                 <button class="btn btn-primary" onclick="showEditForm()">Edit Profile</button>
             </div>
@@ -289,26 +293,25 @@
 
         <!-- Edit Form -->
         <div id="edit-form" class="edit-form">
-            <form>
+            <form action="/u_profile/" method="POST">
+                {% csrf_token %}
+                
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" id="name" value="John Doe">
+                    <input type="text" name="name" value=" {{ user.name }}">
                 </div>
-                <div class="form-group">
-                    <label for="id_number">User Id Number</label>
-                    <input type="text" id="id_number" value="13">
-                </div>
+           
                 <div class="form-group">
                     <label for="phone_number">Phone Number</label>
-                    <input type="text" id="phone_number" value="9876543210">
+                    <input type="text" name="phone_number" value="{{ user.phonenumber }}">
                 </div>
                 <div class="form-group">
                     <label for="address">Address</label>
-                    <textarea id="address" rows="3">chembarampakam, chennai.</textarea>
+                    <textarea name="address" rows="3">{{ user.address }}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" value="johndoe@example.com">
+                    <input type="email" name="email" value="{{ user.email }}">
                 </div>
                 
                 <div class="action-buttons">

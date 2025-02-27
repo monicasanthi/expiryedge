@@ -52,3 +52,4 @@ class billing_product(models.Model):
     total= models.CharField(max_length=255)
     payment_method= models.CharField(max_length=255)
     billing_id= models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)

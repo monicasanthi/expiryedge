@@ -326,30 +326,44 @@
       });
 
       // Dummy chart data
+      const productNames = {{ product_names|safe }};
+      const productQuantities = {{ product_quantities|safe }};
+      const revenueMonths = {{ revenue_months|safe }};
+      const revenueAmounts = {{ revenue_amounts|safe }};
+
       const pieChartCtx = document.getElementById('pieChart').getContext('2d');
       new Chart(pieChartCtx, {
         type: 'doughnut',
         data: {
-          labels: ['Product A', 'Product B', 'Product C', 'Product D'],
+          labels: productNames,
           datasets: [{
-            data: [50, 30, 20, 10],
-            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+            data: productQuantities,
+            backgroundColor: [
+              '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0',
+              '#9966ff', '#ff9f40', '#ffcd56', '#4bc0c0',
+              '#c9cbcf', '#ff6384'
+            ],
           }]
         },
       });
+      // end pie chart
 
-      const barChartCtx = document.getElementById('barChart').getContext('2d');
-      new Chart(barChartCtx, {
-        type: 'bar',
-        data: {
-          labels: ['January', 'February', 'March'],
-          datasets: [{
-            label: 'Revenue (₹)',
-            data: [3000, 4000, 5000],
-            backgroundColor: '#4bc0c0',
-          }]
-        },
-      });
+      // Bar chart 
+
+       const barChartCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barChartCtx, {
+          type: 'bar',
+          data: {
+            labels: revenueMonths,
+            datasets: [{
+              label: 'Revenue (₹)',
+              data: revenueAmounts,
+              backgroundColor: '#4bc0c0',
+            }]
+          },
+        });
+
+      // end bar chart
     </script>
   </body>
 </html>
