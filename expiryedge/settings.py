@@ -14,13 +14,13 @@ SECRET_KEY = 'django-insecure-ja=p$29tgui(b6a%^5s#u%6=*)%!*1vm340k^q!0j%m8a83%h(
 DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://6052-180-235-121-242.ngrok-free.app',
+    'https://a911-180-235-121-242.ngrok-free.app',
 ]
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '6052-180-235-121-242.ngrok-free.app'
+    'a911-180-235-121-242.ngrok-free.app'
 ]
 
 # Application definition

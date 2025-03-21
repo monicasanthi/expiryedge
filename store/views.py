@@ -392,22 +392,25 @@ def save_billing(request):
                     created_at=datetime.now()
                 )
 
-                # try:
-                #     quan = int(item['quantity'])  # Ensure quantity is an integer
-                #     print(type(quan))  
-                #     product = productdetails.objects.get(product_id=item['product_id'])
-                #     real_quan = product.quantity
-                #     # Directly update the product's quantity in the database
-                #     print(real_quan)
-                #     print(type(real_quan))
-                #     real_quan -= quan  # No need for `real_quan`
-                #     product.save()
-                # except productdetails.DoesNotExist:
-                #     print(f"Product with ID {item['product_id']} not found in productdetails.")
-                # except ValueError:
-                #     print(f"Invalid quantity value for product {item['product_id']}: {item['quantity']}")
-                # except Exception as stock_error:
-                #     print(f"Error updating stock: {stock_error}")
+                try:
+                    quan = int(item['quantity'])  
+
+                    product = productdetails.objects.get(product_id=item['product_id'])
+                    real_quan = int(product.quantity)  
+
+                    real_quan -= quan
+
+                    product.quantity = real_quan  
+                    product.save()  
+
+                    print(f"Updated stock: {product.quantity}")
+                except productdetails.DoesNotExist:
+                    print(f"Product with ID {item['product_id']} not found in productdetails.")
+                except ValueError:
+                    print(f"Invalid quantity value for product {item['product_id']}: {item['quantity']}")
+                except Exception as stock_error:
+                    print(f"Error updating stock: {stock_error}")
+
 
             # Create PDF
             pdf_path = os.path.join(settings.MEDIA_ROOT, f'bill_{transaction_id}.pdf')
