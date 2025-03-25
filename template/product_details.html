@@ -389,18 +389,20 @@ button {
         this.value = value.slice(-6);
     }
 });
-    // Toggle dropdown menu
-    const userIcon = document.getElementById('userIcon');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    userIcon.addEventListener('click', () => {
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    window.addEventListener('click', (event) => {
-        if (!event.target.matches('#userIcon')) {
-            dropdownMenu.style.display = 'none';
-        }
-    });
+    // User Dropdown Logic
+  const userIcon = document.getElementById('userIcon');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+    
+  userIcon.addEventListener('click', () => {
+    dropdownMenu.style.display =
+      dropdownMenu.style.display === 'block' ? 'none' : 'block';
+  });
+    
+  window.addEventListener('click', (event) => {
+    if (!event.target.matches('#userIcon')) {
+      dropdownMenu.style.display = 'none';
+    }
+  });
 
 
     document.getElementById("Product_id").addEventListener("input", function () {

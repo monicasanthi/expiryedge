@@ -7,6 +7,12 @@
     <title>Staff Screen</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -33,47 +39,98 @@
             position: sticky;
             top: 0;
             z-index: 100;
-        }
-        .header .nav {
-            display: flex;
-            align-items: center;
-        }
-        .header .nav .back-arrow {
-            margin-right: 20px;
-            cursor: pointer;
             color: white;
-            font-size: 1.5rem;
+            flex-wrap: wrap;
         }
-        .header .icons {
-            display: flex;
-            align-items: center;
-            position: relative;
-            gap: 20px;
-        }
-        .header .icons .icon {
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: white;
-        }
-        .dropdown {
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            min-width: 150px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1;
-            display: none;
-        }
-        .dropdown a {
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            display: block;
-        }
-        .dropdown a:hover {
-            background-color: #ddd;
-        }
+        /* Header Title */
+.header-title {
+    font-size: 30px;
+    color: white;
+    font-weight: bold;
+    margin-left: 15px;
+    margin-bottom: 0px;
+}
+
+.icons {
+      display: flex;
+      align-items: center;
+      position: relative;
+      gap: 20px;
+    }
+
+    .header .icons .icon {
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+   }
+
+    .title {
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 15px;
+    }
+
+   .left-section {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Logo Container */
+    .left-section {
+    display: flex;
+    align-items: center;
+    }
+
+    .logo {
+    width: 50px; /* Adjust size as needed */
+    height: auto;
+    }
+
+    /* Dropdown Profile */
+.dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-radius: 5px;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+      text-align: left;
+      display: none;
+    }
+    .dropdown a {
+      color: white;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown a:hover {
+      background-color: #ddd;
+    }
+
+    .dropdown-arrow {
+    font-size: 14px;
+    color: white;
+    margin-right: 15px;
+    cursor: pointer;
+}
+  /* Profile Container */
+  .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      display: inline-block;
+  }
         .search-bar {
             margin: 20px auto;
             text-align: center;
@@ -134,23 +191,16 @@
         /* For mobile devices */
 @media (max-width: 768px) {
     .header {
-        flex-direction: row;  /* Stack header content vertically */
+        flex-direction: row;
         align-items: center;
-        padding: 15px;  /* Adjust padding */
-    }
-
-    .header .nav {
-        margin-bottom: 10px;
-        order: 1; /* Ensure the back arrow comes first */
-    }
-
-    .header .icons {
+        text-align: center;
+      } 
+      .left-section {
         justify-content: center;
-        order: 2;  /* Ensure icons come after the back arrow */
-    }
-
-    .header .icons .icon {
-        font-size: 1.25rem;  /* Adjust icon size for mobile */
+      }
+      .icons {
+        margin-top: 10px;
+      }
     }
 
     /* Adjust search input */
@@ -179,39 +229,24 @@
     .footer button {
         padding: 8px 15px;
     }
-}
-
-/* For larger devices (e.g., tablets and up) */
-/* @media (min-width: 769px) {
-    .search-bar input {
-        width: 60%;
-    }
-
-    .header {
-        padding: 15px 30px;
-    }
-
-    .header .icons .icon {
-        font-size: 1.5rem;
-    }
-
-    .footer button {
-        padding: 12px 20px;
-    }
-} */
     </style>
 </head>
 <body>
     <div class="background-overlay"></div>
+
     <div class="header">
-        <div class="nav">
-            <!-- <i class="fas fa-arrow-left back-arrow"></i> -->
-        </div>
+        <div class="left-section">
+          <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+          <h2 class="header-title">Staff Dashboard</h2>
+        </div> 
         <div class="icons">
             <i class="fas fa-shopping-cart icon"></i>
+
             <div class="dropdown-container">
                 <i class="fas fa-user icon" id="userIcon"></i>
-                <div class="dropdown" id="dropdownMenu">
+                <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
+
+                <div class="dropdown" id="dropdownMenu" style="margin-right: 10px;">
                     <a href="/">Home</a>
                     <a href="/s_d/">Dashboard</a>
                     <a href="/settings/">Settings</a>
@@ -259,12 +294,13 @@
         const dropdownMenu = document.getElementById('dropdownMenu');
 
         userIcon.addEventListener('click', () => {
-            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+            dropdownMenu.style.display =
+            dropdownMenu.style.display === 'block' ? 'none' : 'block';
         });
-
+            
         window.addEventListener('click', (event) => {
             if (!event.target.matches('#userIcon')) {
-                dropdownMenu.style.display = 'none';
+            dropdownMenu.style.display = 'none';
             }
         });
 

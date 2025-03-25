@@ -20,7 +20,6 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      line-height: 1.6;
     }
 
     .background-overlay {
@@ -45,21 +44,20 @@
       position: sticky;
       top: 0;
       z-index: 100;
-    }
-
-    .header .nav {
-      display: flex;
-      align-items: center;
-    }
-
-    .header .nav .back-arrow {
-      margin-right: 20px;
-      cursor: pointer;
       color: white;
-      font-size: 1.5rem;
+      flex-wrap: wrap;
     }
 
-    .header .icons {
+    /* Header Title */
+    .header-title {
+        font-size: 30px;
+        color: white;
+        font-weight: bold;
+        margin-left: 15px;
+        margin-bottom: 0px;
+      }
+
+    .icons {
       display: flex;
       align-items: center;
       position: relative;
@@ -67,9 +65,40 @@
     }
 
     .header .icons .icon {
-      cursor: pointer;
-      font-size: 1.5rem;
-      color: white;
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+   }
+
+    .title {
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 15px;
+    }
+
+   .left-section {
+      display: flex;
+      align-items: center;
+    }
+
+  /* Logo Container */
+        .left-section {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo {
+        width: 50px; /* Adjust size as needed */
+        height: auto;
+      }
+
+      /* Dropdown Profile */
+    .dropdown-container {
+        position: relative;
+        display: inline-block;
     }
 
     .dropdown {
@@ -77,19 +106,19 @@
       top: 50px;
       right: 0;
       background-color: rgba(0, 0, 0, 0.8);
+      border-radius: 5px;
       min-width: 150px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      z-index: 1;
+      z-index: 10;
+      text-align: left;
       display: none;
     }
-
     .dropdown a {
       color: white;
       padding: 10px 15px;
       text-decoration: none;
       display: block;
     }
-
     .dropdown a:hover {
       background-color: #ddd;
     }
@@ -193,6 +222,17 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
+      .header {
+        flex-direction: row;
+        align-items: center;
+        text-align: center;
+      }
+      .left-section {
+        justify-content: center;
+      }
+      .icons {
+        margin-top: 10px;
+      }
       .search-filter {
         flex-direction: column;
       }
@@ -225,14 +265,20 @@
   <div class="background-overlay"></div>
 
   <div class="header">
-    <div class="nav">
-      <!-- <i class="fas fa-arrow-left back-arrow" onclick="goBackToMainPage()"></i> -->
+    <div class="left-section">
+      <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+      <h2 class="header-title">Product Summary</h2>
     </div>
+
     <div class="icons">
       <i class="fas fa-shopping-cart icon"></i>
+
       <div class="dropdown-container">
         <i class="fas fa-user icon" id="userIcon"></i>
-        <div class="dropdown" id="dropdownMenu">
+        <i class="fas fa-caret-down dropdown-arrow"></i> <!-- Dropdown Arrow -->
+        <!-- <span class="profile-name"> Santhi Prasad </span> -->
+
+        <div class="dropdown" id="dropdownMenu" style="margin-right: 10px;">
           <a href="/">Home</a>
           <a href="/o_d/">Dashboard</a>
           <a href="/settings/">Settings</a>
@@ -263,7 +309,6 @@
           <th>Expiry</th>
           <th>Status</th>
           <th>Notes</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody id="stockTableBody">
@@ -278,9 +323,6 @@
                 {{ category|capfirst }}
               </td>
               <td>{{ product.notes|default:"No notes available" }}</td>
-              <td>
-                <button class="remove-btn" onclick="removeItem('{{ product.id }}')">Remove</button>
-              </td>
             </tr>
           {% endfor %}
         {% endfor %}
