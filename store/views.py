@@ -289,12 +289,15 @@ def update_profile(request):
         phonenumber = request.POST.get('phone_number')
         address = request.POST.get('address')
         email = request.POST.get('email')
+        password = request.POST.get('password')
+
     
         # Update fields
         user.name = name
         user.phonenumber = phonenumber
         user.address = address
         user.email = email
+        user.password = password
         user.save()
 
         messages.success(request, 'profile updated succcessfully.')

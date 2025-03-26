@@ -286,6 +286,7 @@
             <p><strong>Phone Number:</strong> {{ user.phonenumber }}</p>
             <p><strong>Address:</strong> {{ user.address }}</p>
             <p><strong>Email:</strong> {{ user.email }} </p>
+            <p><strong>Password:</strong> {{ user.password }} </p>
              <div class="action-buttons">
                 <button class="btn btn-primary" onclick="showEditForm()">Edit Profile</button>
             </div>
@@ -312,6 +313,10 @@
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" name="email" value="{{ user.email }}">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" value="{{ user.password }}">
                 </div>
                 
                 <div class="action-buttons">
