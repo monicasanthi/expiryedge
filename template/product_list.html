@@ -143,8 +143,8 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         table {
-            width: 90%;
-            margin: 20px auto;
+            width: 38%;
+            margin: 20px 20px;
             border-collapse: collapse;
             background-color: white;
              
@@ -267,9 +267,8 @@
                 <th>Product Name</th>
                 <th>Product ID</th>
                 <th>Expiry Date</th>
-                <th>Notes/Category</th>
+                <th>Notes</th>
                 <th>Quantity</th>
-                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -280,7 +279,6 @@
                 <td>{{i.expiry_date}}</td>
                 <td>{{i.notes}}</td>
                 <td>{{i.quantity}}</td>
-                <a href=""><td><button class="remove-btn">Remove</button></td></a>
             </tr>
             {% endfor %}
         </tbody>
