@@ -21,7 +21,7 @@
       margin: 0;
       font-family: Arial, sans-serif;
     }
-
+ 
     .background-overlay {
       position: fixed;
       top: 0;
@@ -305,6 +305,7 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Price</th>
           <th>Quantity</th>
           <th>Expiry</th>
           <th>Status</th>
@@ -317,6 +318,7 @@
           {% for product in products %}
             <tr>
               <td>{{ product.name }}</td>
+              <td>{{ product.mrp }}</td>
               <td>{{ product.quantity }}</td>
               <td>{{ product.expiry_date }}</td>
               <td class="{% if category == 'expired' %}red{% elif category == 'expiring_soon' %}orange{% else %}green{% endif %}">
