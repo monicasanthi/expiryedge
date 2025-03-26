@@ -24,6 +24,8 @@ import numpy as np
 import base64
 import json
 
+
+
 # Create your views here.
 def index(request):
     return render(request,'index.html')
